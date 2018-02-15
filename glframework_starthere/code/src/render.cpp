@@ -3,7 +3,6 @@
 #include <glm\gtc\matrix_transform.hpp>
 #include <cstdio>
 #include <cassert>
-
 #include "GL_framework.h"
 
 ///////// fw decl
@@ -28,7 +27,17 @@ namespace Cube {
 	void drawCube();
 }
 
+namespace MyFirstShader {
 
+	void myInitCode();
+	GLuint myShaderComplie(void);
+
+	void myRenderCode(double currentTime);
+	void myCleanUpCode(void);
+
+	GLuint myRenderProgram;
+	GLuint myVAO;  //Vertex Array Object
+}
 
 
 
@@ -139,7 +148,12 @@ void GLrender(double currentTime) {
 	Axis::drawAxis();
 	Cube::drawCube();*/
 
+	float r = (float)sin(4 * currentTime) * 0.5f + 0.5f;
+	float g = (float)sin(3 * currentTime) * 0.5f + 0.5f;
+	float b = (float)sin(2 * currentTime) * 0.5f + 0.5f;
 
+	const GLfloat red[] = { r, g ,b ,1.0f };
+	glClearBufferfv(GL_COLOR, 0, red); 
 
 	ImGui::Render();
 }
@@ -985,6 +999,71 @@ void main() {\n\
 		glBindVertexArray(0);
 		glDisable(GL_PRIMITIVE_RESTART);
 	}
+
+
+}
+
+
+
+////////////////////////////////////////////// FIRST SHADER
+
+namespace MyFirstShader {
+	
+	// 1. Declare Shader
+	static const GLchar * vertex_shader_source[] =
+	{
+		"#version 330\n\
+		\n\
+		void main(){\n\
+		gl_Position =vec4(0.0,0.0,0.5,1.0);\n\
+		}"
+	};
+
+	static const GLchar * fragment_shader_source[] =
+	{
+		"#version 330\n\
+		\n\
+		out vec4 color; \n\
+		\n\
+		void main(){\n\
+		color = vec4(0.0,0.8,1.0,1.0);\n\
+		}"
+	};
+
+	// 2. Compile and link Shader
+	GLuint myShaderComplie(void) {
+	
+		GLuint vertex_shader;
+		GLuint fragment_shader;
+		GLuint program;
+
+		// Compile vertex and fragment shaders 
+		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
+		glCompileShader(vertex_shader);
+
+		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
+		glCompileShader(fragment_shader);
+
+		//Link vertex and fragment shaders
+		program = glCreateProgram();
+		glAttachShader(program, vertex_shader); 
+		glAttachShader(program, fragment_shader);
+		glLinkProgram(program);
+
+		// Delete shaders before Link and Compile them
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+
+		return program; 
+	}
+	// 3. Init Shader
+	void myInitCode(){}
+	// 4. Render Shader
+	void myRenderCode(double currentTime) {}
+	// 5. CleanUp Shader
+	void myCleanUpCode(void){}
 
 
 }
