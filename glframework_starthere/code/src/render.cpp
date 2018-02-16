@@ -113,6 +113,7 @@ void GLinit(int width, int height) {
 	Axis::setupAxis();
 	Cube::setupCube();
 	*/
+	Cube::setupCube(); 
 	MyFirstShader::myInitCode(); 
 
 
@@ -129,13 +130,27 @@ void GLcleanup() {
 	Axis::cleanupAxis();
 	Cube::cleanupCube();
 	*/
-	MyFirstShader::myCleanUpCode();  //CleanUp of myShader
+
+	Cube::cleanupCube(); 
+	//MyFirstShader::myCleanUpCode();  //CleanUp of myShader
 
 }
 
 void GLrender(double currentTime) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	//Automatic Rotation
+	const float rotationX = currentTime + currentTime*0.01; 
+	const float rotationY = currentTime + currentTime*0.01;
+	RV::rota[0] = rotationX;
+	RV::rota[1] = rotationY;
+	
+	//Automatic Panv
+	/* 
+	RV::panv[1] += sin(currentTime)*0.1;
+	RV::_projection = glm::perspective(RV::FOV, RV::panv[0] / RV::panv[1], RV::zNear, RV::zFar);
+	*/
+	
 	RV::_modelView = glm::mat4(1.f);
 	RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
 	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
@@ -149,15 +164,9 @@ void GLrender(double currentTime) {
 	Cube::drawCube();
 	*/
 
-	MyFirstShader::myRenderCode(currentTime);
-	/*
-	float r = (float)sin(4 * currentTime) * 0.5f + 0.5f;
-	float g = (float)sin(3 * currentTime) * 0.5f + 0.5f;
-	float b = (float)sin(2 * currentTime) * 0.5f + 0.5f;
+	Cube::drawCube(); 
+	//MyFirstShader::myRenderCode(currentTime);
 
-	const GLfloat red[] = { r, g ,b ,1.0f };
-	glClearBufferfv(GL_COLOR, 0, red);
-	*/
 
 	ImGui::Render();
 }
