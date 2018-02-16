@@ -111,9 +111,9 @@ void GLinit(int width, int height) {
 	// Setup shaders & geometry
 	/*Box::setupCube();
 	Axis::setupAxis();
-	Cube::setupCube();*/
-
-
+	Cube::setupCube();
+	*/
+	MyFirstShader::myInitCode(); 
 
 
 
@@ -128,8 +128,8 @@ void GLcleanup() {
 	/*Box::cleanupCube();
 	Axis::cleanupAxis();
 	Cube::cleanupCube();
-*/
-
+	*/
+	MyFirstShader::myCleanUpCode();  //CleanUp of myShader
 
 }
 
@@ -146,14 +146,18 @@ void GLrender(double currentTime) {
 	// render code
 	/*Box::drawCube();
 	Axis::drawAxis();
-	Cube::drawCube();*/
+	Cube::drawCube();
+	*/
 
+	MyFirstShader::myRenderCode(currentTime);
+	/*
 	float r = (float)sin(4 * currentTime) * 0.5f + 0.5f;
 	float g = (float)sin(3 * currentTime) * 0.5f + 0.5f;
 	float b = (float)sin(2 * currentTime) * 0.5f + 0.5f;
 
 	const GLfloat red[] = { r, g ,b ,1.0f };
-	glClearBufferfv(GL_COLOR, 0, red); 
+	glClearBufferfv(GL_COLOR, 0, red);
+	*/
 
 	ImGui::Render();
 }
@@ -1015,7 +1019,10 @@ namespace MyFirstShader {
 		"#version 330\n\
 		\n\
 		void main(){\n\
-		gl_Position =vec4(0.0,0.0,0.5,1.0);\n\
+		const vec4 vertices[3] = vec4[3](vec4(0.25,-0.25,0.5,1.0),\n\
+								vec4(-0.25,0.25,0.5,1.0),\n\
+								vec4(-0.25,-0.25,0.5,1.0));\n\
+		gl_Position = vertices[gl_VertexID];\n\
 		}"
 	};
 
@@ -1026,7 +1033,7 @@ namespace MyFirstShader {
 		out vec4 color; \n\
 		\n\
 		void main(){\n\
-		color = vec4(0.0,0.8,1.0,1.0);\n\
+		color = vec4(0.5,0.8,0.0,1.0);\n\
 		}"
 	};
 
@@ -1059,11 +1066,36 @@ namespace MyFirstShader {
 		return program; 
 	}
 	// 3. Init Shader
-	void myInitCode(){}
+	void myInitCode(){
+	
+		myRenderProgram = myShaderComplie();
+		glCreateVertexArrays(1, &myVAO);			// Create the Vertex Array Object, give its the size : 1
+		glBindVertexArray(myVAO);					// Binds the VAO to the current context
+	}
 	// 4. Render Shader
-	void myRenderCode(double currentTime) {}
+	void myRenderCode(double currentTime) {
+	
+		/*float r = (float)sin(4 * currentTime) * 0.5f + 0.5f;
+		float g = (float)sin(3 * currentTime) * 0.5f + 0.5f;
+		float b = (float)sin(2 * currentTime) * 0.5f + 0.5f;
+
+		const GLfloat red[] = { r, g ,b ,1.0f };
+		glClearBufferfv(GL_COLOR, 0, red);*/
+
+		glUseProgram(myRenderProgram);
+
+		glPointSize(20.0f);  //Make size of points in pixels 
+		//glLineWidth(10.0f); //Size of lines
+		glDrawArrays(GL_TRIANGLES, 0, 3); 
+
+
+	}
 	// 5. CleanUp Shader
-	void myCleanUpCode(void){}
+	void myCleanUpCode(void){
+	
+		glDeleteVertexArrays(1, &myVAO);
+		glDeleteProgram(myRenderProgram);
+	}
 
 
 }
