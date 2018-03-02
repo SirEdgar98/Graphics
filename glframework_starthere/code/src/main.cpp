@@ -13,16 +13,16 @@ extern void PhysicsUpdate(float dt);
 extern void PhysicsCleanup();*/
 extern void GUI();
 
-extern void GLmousecb(MouseEvent ev);
-extern void GLResize(int width, int height);
+//extern void GLmousecb(MouseEvent ev);
+//extern void GLResize(int width, int height);
 extern void GLinit(int width, int height);
 extern void GLcleanup();
 extern void GLrender(double currentTime);
 
 
 extern void myRenderCode(double currentTime);
-//extern void myCleanupCode(void);
-//extern void myInitCode(void);
+extern void myCleanupCode(void);
+extern void myInitCode(int width, int height);
 
 //////
 namespace {
@@ -86,13 +86,16 @@ int main(int argc, char** argv) {
 
 	int display_w, display_h;
 	SDL_GL_GetDrawableSize(mainwindow, &display_w, &display_h);
+	
+	
 	// Init scene
-	GLinit(display_w, display_h);
+	//GLinit(display_w, display_h);
 	//PhysicsInit();
 
-	//myInitCode();
+	myInitCode(display_w, display_h);
 
 	
+
 	// Setup ImGui binding
 	ImGui_ImplSdlGL3_Init(mainwindow);
 
@@ -106,7 +109,7 @@ int main(int argc, char** argv) {
 			switch (eve.type) {
 			case SDL_WINDOWEVENT:
 				if (eve.window.event == SDL_WINDOWEVENT_RESIZED) {
-					GLResize(eve.window.data1, eve.window.data2);
+					//GLResize(eve.window.data1, eve.window.data2);
 				}
 				break;
 			case SDL_QUIT:
@@ -127,15 +130,15 @@ int main(int argc, char** argv) {
 				(io.MouseDown[1] ? MouseEvent::Button::Right :
 				(io.MouseDown[2] ? MouseEvent::Button::Middle :
 				MouseEvent::Button::None)))};
-			GLmousecb(ev);
+			//GLmousecb(ev);
 		}
 
 
 		double currentTime = (double)SDL_GetTicks() / 1000.0;
-		GLrender(currentTime);
+		//GLrender(currentTime);
 		
 		//double currentTime = (double) SDL_GetTicks() / 1000.0;
-		//myRenderCode(currentTime);
+		myRenderCode(currentTime);
 		
 
 
@@ -143,9 +146,9 @@ int main(int argc, char** argv) {
 		waitforFrameEnd();
 	}
 
-	//myCleanupCode();
+	myCleanupCode();
 
-	GLcleanup();
+	//GLcleanup();
 
 	ImGui_ImplSdlGL3_Shutdown();
 	SDL_GL_DeleteContext(maincontext);
