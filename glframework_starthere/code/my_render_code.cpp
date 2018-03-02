@@ -8,6 +8,9 @@
 
 #include "GL_framework.h"
 
+const float margin = 30; 
+static float speed, posX; 
+
 
 namespace ImGui {
 	void Render();
@@ -33,8 +36,8 @@ namespace Cube {
 }
 
 namespace RenderVars {
-	const float FOV = glm::radians(65.f);
-	const float zNear = 1.f;
+	const float FOV = glm::radians(65.0f);
+	const float zNear = 0.f;
 	const float zFar = 50.f;
 
 	glm::mat4 _projection;
@@ -42,7 +45,6 @@ namespace RenderVars {
 	glm::mat4 _MVP;
 	glm::mat4 _inv_modelview;
 	glm::vec4 _cameraPoint;
-
 
 	float panv[3] = { 0.f, -5.f, -15.f };
 	float rota[2] = { 0.f, 0.f };
@@ -57,9 +59,12 @@ void myInitCode(int width, int height) {
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	speed = 0.3;
+	posX = -margin;
 
-	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
-
+	float scale = 50; 
+	//RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
+	RV::_projection = glm::ortho(-(float)width / scale, (float)width/scale, -(float)height/scale, (float)width/scale, RV::zNear, RV::zFar);
 	// Setup shaders & geometry
 	Box::setupCube();
 	Axis::setupAxis();
@@ -74,7 +79,17 @@ void myRenderCode(double currentTime) {
 	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
 	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
 
-	RV::_MVP = RV::_projection * RV::_modelView;
+	//RV::_MVP = RV::_projection * RV::_modelView;
+
+	
+	if (posX >= margin)
+		posX = -margin;
+
+	glm::mat4 CameraMat = glm::lookAt(glm::vec3{posX,20.0,-20.0}, glm::vec3{posX+5,5.0,0}, glm::vec3{0.0,1.0,0.0});
+
+	RV::_MVP = RV::_projection * CameraMat; 
+
+	posX += speed;
 
 	// render code
 	Box::drawCube();
@@ -330,7 +345,7 @@ namespace Cube {
 	GLuint cubeVbo[3];
 	GLuint cubeShaders[2];
 	GLuint cubeProgram;
-	glm::mat4 objMat = glm::mat4(1.f);
+	glm::mat4 objMat = glm::translate(glm::mat4(1.f), glm::vec3(0.0f, 3.0, 0.0f));  //INITIAL POSITION
 
 	glm::vec4 myColor = { 0.0f, 0.5f, 1.0f, 1.0f }; //variable pel color
 
@@ -489,6 +504,7 @@ void main() {\n\
 		myTransformMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 0.0f));
 		//Cube::updateCube(t);
 		objMat = myTransformMatrix; //utilitzem objMat que es la que s'utilitza a la resta del programa
+
 
 		newColor = { 0.0f, 0.0f, 1.0f, 1.0f }; //seleccio de color
 		Cube::updateColor(newColor);
