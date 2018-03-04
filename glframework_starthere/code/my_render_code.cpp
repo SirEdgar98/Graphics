@@ -6,10 +6,15 @@
 #include <cstdio>
 #include <cassert>
 
+#include <ctime>
+
 #include "GL_framework.h"
 
 const float margin = 30; 
-static float speed, posX; 
+static float travelingSpeed,fovSpeed,zoomSpeed, posX; 
+static float fov;
+static float zoom;
+static time_t rep;
 
 
 namespace ImGui {
@@ -36,7 +41,7 @@ namespace Cube {
 }
 
 namespace RenderVars {
-	const float FOV = glm::radians(65.0f);
+	 float FOV = glm::radians(65.0f);
 	const float zNear = 0.f;
 	const float zFar = 50.f;
 
@@ -59,13 +64,32 @@ void myInitCode(int width, int height) {
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	speed = 0.3;
+	travelingSpeed = 0.3;
+	fovSpeed = 0.3;
+	zoomSpeed = 0.05;
+
 	posX = -margin;
+	fov = 65;
+	zoom = -10;
+
+	rep = clock() + 4000;
 
 	float scale = 50; 
-	//RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
-	RV::_projection = glm::ortho(-(float)width / scale, (float)width/scale, -(float)height/scale, (float)width/scale, RV::zNear, RV::zFar);
-	// Setup shaders & geometry
+
+	switch (3) {
+	case 0:
+		RV::_projection = glm::ortho(-(float)width / scale, (float)width / scale, -(float)height / scale, (float)width / scale, RV::zNear, RV::zFar);
+		break;
+
+	case 1:case 2:case 3:
+		RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
+		break;
+	
+
+
+
+	}
+
 	Box::setupCube();
 	Axis::setupAxis();
 	Cube::setupCube();
@@ -74,22 +98,69 @@ void myRenderCode(double currentTime) {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	RV::_modelView = glm::mat4(1.f);
-	RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
-	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
-	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
+	//RV::_modelView = glm::mat4(1.f);
+	//RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
+	//RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
+	//RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
 
 	//RV::_MVP = RV::_projection * RV::_modelView;
 
-	
+
+
+	glm::mat4 CameraMat;
+
+	switch (3) {
+	case 0:
+		CameraMat = glm::lookAt(glm::vec3{ posX,20.0,-20.0 }, glm::vec3{ posX + 5,5.0,0 }, glm::vec3{ 0.0,1.0,0.0 });
+		break;
+
+	case 1:
+		CameraMat = glm::lookAt(glm::vec3{ 0,3,zoom }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
+		break;
+
+	case 2:
+		RV::_projection = glm::perspective(RV::FOV, (float)1920 / (float)1080, RV::zNear, RV::zFar);
+		CameraMat = glm::lookAt(glm::vec3{ 0,3,-10 }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
+		break;
+
+	case 3:
+		RV::_projection = glm::perspective(RV::FOV, (float)1920 / (float)1080, RV::zNear, RV::zFar);
+		CameraMat = glm::lookAt(glm::vec3{ 0,3,zoom }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
+		break;
+
+
+
+	}
+
+
+
 	if (posX >= margin)
 		posX = -margin;
 
-	glm::mat4 CameraMat = glm::lookAt(glm::vec3{posX,20.0,-20.0}, glm::vec3{posX+5,5.0,0}, glm::vec3{0.0,1.0,0.0});
+	if (rep <= clock()) {
+		fov = 65;
+		rep = clock() + 4000;
+		zoom = -10;
+	}
+
+
+	posX += travelingSpeed;
+	zoom += zoomSpeed;
+	fov  += fovSpeed;
+
+	RV::FOV = glm::radians(fov);
+	
+	
+
+
+
+
+
+
 
 	RV::_MVP = RV::_projection * CameraMat; 
 
-	posX += speed;
+
 
 	// render code
 	Box::drawCube();
