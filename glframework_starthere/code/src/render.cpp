@@ -1020,21 +1020,21 @@ namespace MyFirstShader {
 		{
 			"#version 330 \n\
 			\n\
-			\n\
+			uniform float time;\n\
 			layout(triangles) in;\n\
 			layout(triangle_strip,max_vertices = 6) out;\n\
 			void main()\n\
 			{\n\
 				for(int i = 0; i<3 ; i++)\n\
 				{\n\
-					gl_Position = gl_in[i].gl_Position + vec4(0.0,-0.3,0.0,0.0);\n\
+					gl_Position = gl_in[i].gl_Position + vec4(0.0-sin(time),-0.3,0.0,0.0);\n\
 					EmitVertex();\n\
 				}\n\
 				\n\
 					EndPrimitive();\n\
 				for(int i = 0; i<3 ; i++)\n\
 				{\n\
-					gl_Position = gl_in[i].gl_Position + vec4(0.5,0.6,0.0,0.0);\n\
+					gl_Position = gl_in[i].gl_Position + vec4(0.0 + sin(time),0.6,0.0,0.0);\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1089,6 +1089,7 @@ namespace MyFirstShader {
 	void myRenderCode(double currentTime) {
 
 		glUseProgram(myRenderProgram);
+		glUniform1f(glGetUniformLocation(myRenderProgram, "time"), (GLfloat)currentTime);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 
