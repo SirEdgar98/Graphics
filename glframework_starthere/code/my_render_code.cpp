@@ -10,11 +10,6 @@
 
 #include "GL_framework.h"
 
-const float margin = 30; 
-static float travelingSpeed,fovSpeed,zoomSpeed, posX; 
-static float fov;
-static float zoom;
-static time_t rep;
 
 
 namespace ImGui {
@@ -45,6 +40,19 @@ namespace RenderVars {
 	const float zNear = 0.f;
 	const float zFar = 50.f;
 
+	const float margin = 30;
+	float travelingSpeed = 0.3;;
+	float fovSpeed =  0.3;
+	float zoomSpeed = 0.05;
+	float posX = -30;
+	float fov = 65;
+	float zoom = - 10;
+	static time_t rep;
+
+	int width;
+	int height;
+
+
 	glm::mat4 _projection;
 	glm::mat4 _modelView;
 	glm::mat4 _MVP;
@@ -57,6 +65,14 @@ namespace RenderVars {
 namespace RV = RenderVars;
 
 
+
+
+
+
+enum class scene{TRAVELING, ZOOM, FOV, DOLLY };
+scene s = scene::DOLLY;
+
+
 void myInitCode(int width, int height) {
 	glViewport(0, 0, width, height);
 	glClearColor(0.2f, 0.2f, 0.2f, 1.f);
@@ -64,24 +80,18 @@ void myInitCode(int width, int height) {
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	travelingSpeed = 0.3;
-	fovSpeed = 0.3;
-	zoomSpeed = 0.05;
 
-	posX = -margin;
-	fov = 65;
-	zoom = -10;
 
-	rep = clock() + 4000;
+	RV::rep = clock() + 4000;
 
 	float scale = 50; 
 
-	switch (3) {
-	case 0:
+	switch (s) {
+	case scene::TRAVELING:
 		RV::_projection = glm::ortho(-(float)width / scale, (float)width / scale, -(float)height / scale, (float)width / scale, RV::zNear, RV::zFar);
 		break;
 
-	case 1:case 2:case 3:
+	case scene::ZOOM: case scene::FOV:case scene::DOLLY:
 		RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
 		break;
 	
@@ -105,27 +115,28 @@ void myRenderCode(double currentTime) {
 
 	//RV::_MVP = RV::_projection * RV::_modelView;
 
+	
 
 
 	glm::mat4 CameraMat;
 
-	switch (3) {
-	case 0:
-		CameraMat = glm::lookAt(glm::vec3{ posX,20.0,-20.0 }, glm::vec3{ posX + 5,5.0,0 }, glm::vec3{ 0.0,1.0,0.0 });
+	switch (s) {
+	case scene::TRAVELING:
+		CameraMat = glm::lookAt(glm::vec3{ RV::posX,20.0,-20.0 }, glm::vec3{ RV::posX + 5,5.0,0 }, glm::vec3{ 0.0,1.0,0.0 });
 		break;
 
-	case 1:
-		CameraMat = glm::lookAt(glm::vec3{ 0,3,zoom }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
+	case scene::ZOOM:
+		CameraMat = glm::lookAt(glm::vec3{ 0,3,RV::zoom }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
 		break;
 
-	case 2:
+	case scene::FOV:
 		RV::_projection = glm::perspective(RV::FOV, (float)1920 / (float)1080, RV::zNear, RV::zFar);
 		CameraMat = glm::lookAt(glm::vec3{ 0,3,-10 }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
 		break;
 
-	case 3:
+	case scene::DOLLY:
 		RV::_projection = glm::perspective(RV::FOV, (float)1920 / (float)1080, RV::zNear, RV::zFar);
-		CameraMat = glm::lookAt(glm::vec3{ 0,3,zoom }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
+		CameraMat = glm::lookAt(glm::vec3{ 0,3,RV::zoom }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
 		break;
 
 
@@ -134,21 +145,21 @@ void myRenderCode(double currentTime) {
 
 
 
-	if (posX >= margin)
-		posX = -margin;
+	if (RV::posX >= RV::margin)
+		RV::posX = -30;
 
-	if (rep <= clock()) {
-		fov = 65;
-		rep = clock() + 4000;
-		zoom = -10;
+	if (RV::rep <= clock()) {
+		RV::fov = 65;
+		RV::rep = clock() + 4000;
+		RV::zoom = -10;
 	}
 
 
-	posX += travelingSpeed;
-	zoom += zoomSpeed;
-	fov  += fovSpeed;
+	RV::posX += RV::travelingSpeed;
+	RV::zoom += RV::zoomSpeed;
+	RV::fov  += RV::fovSpeed;
 
-	RV::FOV = glm::radians(fov);
+	RV::FOV = glm::radians(RV::fov);
 	
 	
 
