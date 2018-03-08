@@ -26,8 +26,6 @@ namespace Cube {
 	void cleanupCube();
 	void updateCube(const glm::mat4& transform);
 	void drawCube();
-	void draw2Cubes(double currentTime);
-	void updateColor(const glm::vec4 newColor);
 }
 
 namespace MyFirstShader {
@@ -111,22 +109,14 @@ void GLinit(int width, int height) {
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
 
 	// Setup shaders & geometry
-	Box::setupCube();
-	Axis::setupAxis();
-	//Cube::setupCube();
+	
 
-	//MyFirstShader::myInitCode();
-	Cube::setupCube();
+	MyFirstShader::myInitCode();
 }
 
 void GLcleanup() {
-	Box::cleanupCube();
-	Axis::cleanupAxis();
-	//Cube::cleanupCube();
-
-	//MyFirstShader::myCleanupCode();
-	Cube::cleanupCube();
-
+	
+	MyFirstShader::myCleanupCode();
 }
 
 void GLrender(double currentTime) {
@@ -140,14 +130,9 @@ void GLrender(double currentTime) {
 	RV::_MVP = RV::_projection * RV::_modelView;
 
 	// render code
-	Box::drawCube();
-	Axis::drawAxis();
-	//Cube::drawCube();
 
-	//MyFirstShader::myRenderCode(currentTime); //cridem la funcio myRenderCode
-	//Cube::drawCube();
+	MyFirstShader::myRenderCode(currentTime);
 
-	Cube::draw2Cubes(currentTime);
 
 	ImGui::Render();
 }
@@ -996,69 +981,9 @@ void main() {\n\
 		glBindVertexArray(0);
 		glDisable(GL_PRIMITIVE_RESTART);
 	}
-
-	void draw2Cubes(double currentTime) {
-		glEnable(GL_PRIMITIVE_RESTART);
-		glBindVertexArray(cubeVao);
-		glUseProgram(cubeProgram);
-
-		glm::vec4 newColor;
-		glm::mat4 myTransformMatrix;
-		glm::mat4 myScalingMatrix;
-		glm::mat4 myRotationMatrix;
-
-		////
-		//Paint blue cube on the right side of the world
-		myTransformMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 0.0f));
-		//Cube::updateCube(t);
-		objMat = myTransformMatrix; //utilitzem objMat que es la que s'utilitza a la resta del programa
-
-		newColor = { 0.0f, 0.0f, 1.0f, 1.0f }; //seleccio de color
-		Cube::updateColor(newColor);
-		////
-
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP)); //on es coloca la camera
-																														//glUniform4f(glGetUniformLocation(cubeProgram, "color"), 0.1f, 1.f, 1.f, 0.f);
-		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
-		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
-
-
-		////
-		//Paint a green cube on the left side of the world
-		//estem reutilitzant el conjunt de vertex (objMat) que anem movent i pintem
-		glm::mat4 t2 = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, cos(currentTime) + 2.0f, 0.0f));
-		myTransformMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 1.0f *(float)sin(currentTime) + 2.5f, 0.0f)); //transformacio
-		myScalingMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(1.5f + 0.5 * sin(currentTime))); //escalat
-																								 //myRotationMatrix = glm::rotate(glm::mat4(1.0f), 5.0f * (float)sin(currentTime), glm::vec3(0.0f, 1.0f, 0.0f)); //rotacio sobre eix y
-		myRotationMatrix = glm::rotate(glm::mat4(1.0f), 5.0f * (float)sin(currentTime), glm::vec3(1.0f, 2.0f, 0.0f)); //rotacio sobre primer cub
-
-
-		objMat = t2 * myTransformMatrix * myRotationMatrix * myScalingMatrix; //important seguir ordre correcte de multiplicacio (primer scale, rotation i translation) dreta a esquerra
-
-		newColor = { 0.0f, 1.0f *(float)sin(currentTime) + 0.5f, 0.5f *(float)cos(currentTime) + 0.5f, 1.0f }; //seleccio de color
-		Cube::updateColor(newColor);
-
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
-		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
-		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
-		////
-
-
-		glUseProgram(0);
-		glBindVertexArray(0);
-		glDisable(GL_PRIMITIVE_RESTART);
-	}
-
-	void updateColor(const glm::vec4 newColor) {
-		myColor = newColor;
-	}
-
-
 }
 
-////////////////////////////////////////////////// MY FIRST SHADER
+////////////////////////////////////////////////// MY FIRST SHADER & DUPLICATION SHADER
 namespace MyFirstShader {
 
 
@@ -1066,79 +991,102 @@ namespace MyFirstShader {
 	//la GPU treballa amb strings
 	//glPosition = vec4(x,y,z,w);
 	//IMPORTANTE: pintar los puntos en orden y sentido counter clockwise o pintara la figura por la cara que no se ve
-	static const GLchar * vertex_shader_source[] =
-	{
-		"#version 330\n\
-		\n\
-		void main(){\n\
-		const vec4 vertices[3] = vec4[3](vec4( 0.25, -0.25, 0.5, 1.0), \n\
-										 vec4( 0.25, 0.25, 0.5, 1.0), \n\
-										 vec4( -0.25,  -0.25, 0.5, 1.0));\n\
-		gl_Position = vertices[gl_VertexID];\n\
-		}"
-	};
-
-	static const GLchar * fragment_shader_source[] =
-	{
-		"#version 330\n\
-		\n\
-		out vec4 color; \n\
-		\n\
-		void main(){\n\
-		color = vec4(0.0,0.8,1.0,1.0);\n\
-		}"
-	};
-
-
+	
 	//2.  Compile and link shader
 	GLuint myShaderCompile(void) {
-		GLuint vertex_shader; //Unsigned Integer de GL
+		static const GLchar * vertex_shader_source[] =
+		{
+			"#version 330										\n\
+		\n\
+		void main() {\n\
+		const vec4 vertices[3] = vec4[3](vec4( 0.25, -0.25, 0.5, 1.0),\n\
+									   vec4(0.25, 0.25, 0.5, 1.0),\n\
+										vec4( -0.25,  -0.25, 0.5, 1.0));\n\
+		gl_Position = vertices[gl_VertexID];\n\
+		}"
+		};
+		static const GLchar * fragment_shader_source[] =
+		{
+			"#version 330\n\
+		\n\
+		out vec4 color;\n\
+		\n\
+		void main() {\n\
+		color = vec4(0.3,0.5,1.0,1.0);\n\
+		}"
+		};
+
+		static const char * geom_shader_sourece[] =
+		{
+			"#version 330 \n\
+			\n\
+			\n\
+			layout(triangles) in;\n\
+			layout(triangle_strip,max_vertices = 3) out;\n\
+			void main()\n\
+			{\n\
+				for(int i = 0; i<3 ; i++)\n\
+				{\n\
+					gl_Position = gl_in[i].gl_Position + vec4(0.5,0.5,0.0,0.0);\n\
+					EmitVertex();\n\
+				}\n\
+				\n\
+					EndPrimitive();\n\
+			}\n\ "
+		};
+
+
+
+
+		GLuint vertex_shader;
 		GLuint fragment_shader;
+		GLuint geom_shader; 
 		GLuint program;
 
-		vertex_shader = glCreateShader(GL_VERTEX_SHADER); //crea un vertex shader
-		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL); //li dona el vertex shader al codi font de vertex_shader_source
-		glCompileShader(vertex_shader); //compila el shader
+		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
+		glCompileShader(vertex_shader);
 
-		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER); //crea un fragment shader
-		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL); //li dona el fragment shader al codi font de fragment_shader_source
-		glCompileShader(fragment_shader); //compila el shader
 
-										  //Linka els shaders al programa
+		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
+		glCompileShader(fragment_shader);
+
+		geom_shader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geom_shader, 1, geom_shader_sourece, NULL);
+		glCompileShader(geom_shader);
+
 		program = glCreateProgram();
 		glAttachShader(program, vertex_shader);
 		glAttachShader(program, fragment_shader);
+		glAttachShader(program, geom_shader);
 		glLinkProgram(program);
 
-		//Dettach dels shaders del programa
 		glDeleteShader(vertex_shader);
 		glDeleteShader(fragment_shader);
+		glDeleteShader(geom_shader); 
 
 		return program;
-
 	}
-	//3. Init shader
-	void myInitCode(void) {
+
+
+	void  myInitCode(void) {
+
 		myRenderProgram = myShaderCompile();
-		glCreateVertexArrays(1, &myVAO); //crea 1 vertex d'arrays
-		glBindVertexArray(myVAO); //uneix el vertex d'arrays
+		glCreateVertexArrays(1, &myVAO);
+		glBindVertexArray(myVAO);
+
+
 	}
 
-	//4. Render shader
+
 	void myRenderCode(double currentTime) {
-		const GLfloat red[] = { 0.5f *(float)sin(currentTime) + 0.5f, 0.5f * (float)cos(currentTime) + 0.5f, 1.0f, 1.0f };
-		glClearBufferfv(GL_COLOR, 0, red); //fv float vector
-		glUseProgram(myRenderProgram); //pintara el programa
 
-		glPointSize(20.0f); //canviem la mida dels pixels per veure la diferencia
+		glUseProgram(myRenderProgram);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
-							//glDrawArrays(GL_POINTS, 0, 1); //pinta com un punt
-							//glDrawArrays(GL_POINTS, 0, 3); //pinta 3 punts
-							//glDrawArrays(GL_LINES, 0, 3); //pinta una linea entre els primers punts
-							//glDrawArrays(GL_LINE_LOOP, 0, 3); //pinta lineas que une los 3 vertices
-		glDrawArrays(GL_TRIANGLES, 0, 3); //pinta lineas que une los 3 vertices y genera el plano con color
+
 	}
-
 	//5. Cleanup shader
 	void myCleanupCode(void) {
 		glDeleteVertexArrays(1, &myVAO);

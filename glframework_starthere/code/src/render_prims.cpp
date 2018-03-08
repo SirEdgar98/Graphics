@@ -3,11 +3,11 @@
 #include <glm\gtc\matrix_transform.hpp>
 
 // Boolean variables allow to show/hide the primitives
-bool renderSphere = true;
-bool renderCapsule = true;
+bool renderSphere = false;
+bool renderCapsule = false;
 bool renderParticles = false;
 bool renderCloth = false;
-bool renderCube = true;
+bool renderCube = false;
 
 namespace Sphere {
 	extern void setupSphere(glm::vec3 pos = glm::vec3(0.f, 1.f, 0.f), float radius = 1.f);
