@@ -5,7 +5,8 @@
 
 #include <cstdio>
 #include <cassert>
-
+#include<imgui\imgui.h>
+#include <imgui\imgui_impl_sdl_gl3.h>
 #include <ctime>
 
 #include "GL_framework.h"
@@ -13,7 +14,7 @@
 
 
 namespace ImGui {
-	void Render();
+	void RenderGUI();
 }
 namespace Box {
 	void setupCube();
@@ -64,14 +65,30 @@ namespace RenderVars {
 }
 namespace RV = RenderVars;
 
-
+static int selected; 
 
 
 
 
 enum class scene{TRAVELING, ZOOM, FOV, DOLLY };
-scene s = scene::DOLLY;
+scene s = scene::ZOOM;
 
+namespace ImGui {
+	void RenderGUI()
+	{
+		bool show = true;
+		ImGui::Begin("Escenari Selection", &show, 0);
+		{
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+			ImGui::RadioButton("Traveling", &selected, 0); 
+			ImGui::RadioButton("Zoom", &selected, 1); 
+			ImGui::RadioButton("FOV", &selected, 2);
+			ImGui::RadioButton("Dolly Effect", &selected, 3);
+		}
+		ImGui::End();
+
+	}
+}
 
 void myInitCode(int width, int height) {
 	glViewport(0, 0, width, height);
@@ -115,7 +132,23 @@ void myRenderCode(double currentTime) {
 
 	//RV::_MVP = RV::_projection * RV::_modelView;
 
-	
+	switch (selected)
+	{
+	case 0:
+		 s = scene::TRAVELING;
+		break;
+	case 1:
+		 s = scene::ZOOM;
+		break;
+	case 2:
+		 s = scene::FOV;
+		break;
+	case 3:
+		 s = scene::DOLLY;
+		break;
+	default:
+		break;
+	}
 
 
 	glm::mat4 CameraMat;
@@ -176,9 +209,9 @@ void myRenderCode(double currentTime) {
 	// render code
 	Box::drawCube();
 	Axis::drawAxis();
-	Cube::drawCube();
+	//Cube::drawCube();
 
-	//Cube::draw2Cubes(currentTime);
+	Cube::draw2Cubes(currentTime);
 
 	ImGui::Render();
 
@@ -427,7 +460,7 @@ namespace Cube {
 	GLuint cubeVbo[3];
 	GLuint cubeShaders[2];
 	GLuint cubeProgram;
-	glm::mat4 objMat = glm::translate(glm::mat4(1.f), glm::vec3(0.0f, 3.0, 0.0f));  //INITIAL POSITION
+	glm::mat4 objMat;
 
 	glm::vec4 myColor = { 0.0f, 0.5f, 1.0f, 1.0f }; //variable pel color
 
@@ -572,6 +605,7 @@ void main() {\n\
 	}
 
 	void draw2Cubes(double currentTime) {
+
 		glEnable(GL_PRIMITIVE_RESTART);
 		glBindVertexArray(cubeVao);
 		glUseProgram(cubeProgram);
@@ -583,35 +617,79 @@ void main() {\n\
 
 		////
 		//Paint blue cube on the right side of the world
-		myTransformMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 0.0f));
-		//Cube::updateCube(t);
-		objMat = myTransformMatrix; //utilitzem objMat que es la que s'utilitza a la resta del programa
+		
 
 
-		newColor = { 0.0f, 0.0f, 1.0f, 1.0f }; //seleccio de color
+		newColor = { 0.6f, 0.8f, 1.0f, 1.0f }; //seleccio de color
 		Cube::updateColor(newColor);
 		////
 
+
+		glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)); //transformacio
+		glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+		objMat = translate * scale;
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
-		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP)); //on es coloca la camera
-																														//glUniform4f(glGetUniformLocation(cubeProgram, "color"), 0.1f, 1.f, 1.f, 0.f);
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
-
-
 		////
-		//Paint a green cube on the left side of the world
-		//estem reutilitzant el conjunt de vertex (objMat) que anem movent i pintem
-		glm::mat4 t2 = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, cos(currentTime) + 2.0f, 0.0f));
-		myTransformMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 1.0f *(float)sin(currentTime) + 2.5f, 0.0f)); //transformacio
-		
 
+		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(-1.25f,0.0f, 0.0f)); //transformacio
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		////
 
+		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(1.25f, 0.0f, 0.0f)); //transformacio
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
+		////
+
+		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.0f, 0.0f)); //transformacio
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
+		////
+
+		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(-2.5f, 0.0f, 0.0f)); //transformacio
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
+		////
+
+		translate = glm::translate(glm::mat4(1.0f), glm::vec3(-1.25f, 0.0f, 1.5f)); //transformacio
+		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 1.0f));
+		objMat = translate * scale;
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
+		////
+
+		translate = glm::translate(glm::mat4(1.0f), glm::vec3(1.25f, 0.0f, 1.5f)); //transformacio
+		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 1.0f));
+		objMat = translate * scale;
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
+		////
+
+		translate = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.0f, 2.5f)); //transformacio
+		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f));
+		objMat = translate * scale;
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
+		////
+
+		translate = glm::translate(glm::mat4(1.0f), glm::vec3(-2.5f, 0.0f, 2.5f)); //transformacio
+		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f));
+		objMat = translate * scale;
+		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
+		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
+		////
 
 		glUseProgram(0);
 		glBindVertexArray(0);

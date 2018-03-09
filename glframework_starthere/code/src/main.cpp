@@ -23,6 +23,9 @@ extern void GLrender(double currentTime);
 extern void myRenderCode(double currentTime);
 extern void myCleanupCode(void);
 extern void myInitCode(int width, int height);
+namespace ImGui {
+	extern void RenderGUI();
+}
 
 //////
 namespace {
@@ -121,8 +124,8 @@ int main(int argc, char** argv) {
 
 		ImGuiIO& io = ImGui::GetIO();
 		
-		
-		GUI();
+		ImGui::RenderGUI();
+		//GUI();
 		//PhysicsUpdate((float)expected_frametime);
 		if(!io.WantCaptureMouse) {
 			MouseEvent ev = {io.MousePos.x, io.MousePos.y, 
