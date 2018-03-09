@@ -20,7 +20,7 @@ extern void GLcleanup();
 extern void GLrender(double currentTime);
 
 
-extern void myRenderCode(double currentTime);
+extern void myRenderCode(double currentTime, int width, int height);
 extern void myCleanupCode(void);
 extern void myInitCode(int width, int height);
 namespace ImGui {
@@ -141,7 +141,7 @@ int main(int argc, char** argv) {
 		//GLrender(currentTime);
 		
 		//double currentTime = (double) SDL_GetTicks() / 1000.0;
-		myRenderCode(currentTime);
+		myRenderCode(currentTime, display_w, display_h);
 		
 
 

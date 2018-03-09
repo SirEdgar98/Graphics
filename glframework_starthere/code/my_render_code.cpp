@@ -32,7 +32,7 @@ namespace Cube {
 	void cleanupCube();
 	void updateCube(const glm::mat4& transform);
 	void drawCube();
-	void draw2Cubes(double currentTime);
+	void DrawScene(double currentTime);
 	void updateColor(const glm::vec4 newColor);
 }
 
@@ -65,13 +65,10 @@ namespace RenderVars {
 }
 namespace RV = RenderVars;
 
-static int selected; 
-
-
-
 
 enum class scene{TRAVELING, ZOOM, FOV, DOLLY };
-scene s = scene::ZOOM;
+static int selected = 0;
+scene s = scene::TRAVELING; 
 
 namespace ImGui {
 	void RenderGUI()
@@ -101,36 +98,13 @@ void myInitCode(int width, int height) {
 
 	RV::rep = clock() + 4000;
 
-	float scale = 50; 
-
-	switch (s) {
-	case scene::TRAVELING:
-		RV::_projection = glm::ortho(-(float)width / scale, (float)width / scale, -(float)height / scale, (float)width / scale, RV::zNear, RV::zFar);
-		break;
-
-	case scene::ZOOM: case scene::FOV:case scene::DOLLY:
-		RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
-		break;
-	
-
-
-
-	}
-
 	Box::setupCube();
 	Axis::setupAxis();
 	Cube::setupCube();
 }
-void myRenderCode(double currentTime) {
+void myRenderCode(double currentTime, int width, int height) {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	//RV::_modelView = glm::mat4(1.f);
-	//RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
-	//RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
-	//RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
-
-	//RV::_MVP = RV::_projection * RV::_modelView;
 
 	switch (selected)
 	{
@@ -150,15 +124,18 @@ void myRenderCode(double currentTime) {
 		break;
 	}
 
-
 	glm::mat4 CameraMat;
+	float scale = 50;
 
 	switch (s) {
-	case scene::TRAVELING:
+	case scene::TRAVELING:	
+		RV::_projection = glm::ortho(-(float)width / scale, (float)width / scale, -(float)height / scale, (float)width / scale, RV::zNear, RV::zFar);
 		CameraMat = glm::lookAt(glm::vec3{ RV::posX,20.0,-20.0 }, glm::vec3{ RV::posX + 5,5.0,0 }, glm::vec3{ 0.0,1.0,0.0 });
 		break;
 
 	case scene::ZOOM:
+		RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
+	
 		CameraMat = glm::lookAt(glm::vec3{ 0,3,RV::zoom }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
 		break;
 
@@ -172,11 +149,7 @@ void myRenderCode(double currentTime) {
 		CameraMat = glm::lookAt(glm::vec3{ 0,3,RV::zoom }, glm::vec3{ 0 ,3,0 }, glm::vec3{ 0.0,1.0,0.0 });
 		break;
 
-
-
 	}
-
-
 
 	if (RV::posX >= RV::margin)
 		RV::posX = -30;
@@ -194,14 +167,6 @@ void myRenderCode(double currentTime) {
 
 	RV::FOV = glm::radians(RV::fov);
 	
-	
-
-
-
-
-
-
-
 	RV::_MVP = RV::_projection * CameraMat; 
 
 
@@ -209,10 +174,7 @@ void myRenderCode(double currentTime) {
 	// render code
 	Box::drawCube();
 	Axis::drawAxis();
-	//Cube::drawCube();
-
-	Cube::draw2Cubes(currentTime);
-
+	Cube::DrawScene(currentTime);
 	ImGui::Render();
 
  }
@@ -604,7 +566,7 @@ void main() {\n\
 		glDisable(GL_PRIMITIVE_RESTART);
 	}
 
-	void draw2Cubes(double currentTime) {
+	void DrawScene(double currentTime) {
 
 		glEnable(GL_PRIMITIVE_RESTART);
 		glBindVertexArray(cubeVao);
