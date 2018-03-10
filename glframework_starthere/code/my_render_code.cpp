@@ -98,8 +98,6 @@ void myInitCode(int width, int height) {
 
 	RV::rep = clock() + 4000;
 
-	Box::setupCube();
-	Axis::setupAxis();
 	Cube::setupCube();
 }
 void myRenderCode(double currentTime, int width, int height) {
@@ -127,6 +125,8 @@ void myRenderCode(double currentTime, int width, int height) {
 	glm::mat4 CameraMat;
 	float scale = 50;
 
+
+	//Sitch for each scene
 	switch (s) {
 	case scene::TRAVELING:	
 		RV::_projection = glm::ortho(-(float)width / scale, (float)width / scale, -(float)height / scale, (float)width / scale, RV::zNear, RV::zFar);
@@ -171,9 +171,7 @@ void myRenderCode(double currentTime, int width, int height) {
 
 
 
-	// render code
-	Box::drawCube();
-	Axis::drawAxis();
+	//Render scene and GUI
 	Cube::DrawScene(currentTime);
 	ImGui::Render();
 
@@ -185,9 +183,6 @@ void myCleanupCode(void) {
 	Axis::cleanupAxis();
 	Cube::cleanupCube();
  }
-
-
-
 
 
 
@@ -424,7 +419,8 @@ namespace Cube {
 	GLuint cubeProgram;
 	glm::mat4 objMat;
 
-	glm::vec4 myColor = { 0.0f, 0.5f, 1.0f, 1.0f }; //variable pel color
+	//Change color variable
+	glm::vec4 myColor = { 0.0f, 0.5f, 1.0f, 1.0f }; 
 
 	extern const float halfW = 0.5f;
 	int numVerts = 24 + 6; // 4 vertex/face * 6 faces + 6 PRIMITIVE RESTART
@@ -573,22 +569,15 @@ void main() {\n\
 		glUseProgram(cubeProgram);
 
 		glm::vec4 newColor;
-		glm::mat4 myTransformMatrix;
-		glm::mat4 myScalingMatrix;
-		glm::mat4 myRotationMatrix;
 
 		////
-		//Paint blue cube on the right side of the world
-		
-
-
-		newColor = { 0.6f, 0.8f, 1.0f, 1.0f }; //seleccio de color
+		newColor = { 1.0f, 0.8f, 0.5f, 1.0f }; //Color selection
 		Cube::updateColor(newColor);
 		////
 
 
 		glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)); //transformacio
-		glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+		glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.0f, 1.0f)); //Scale
 		objMat = translate * scale;
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
@@ -597,56 +586,62 @@ void main() {\n\
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		////
 
-		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(-1.25f,0.0f, 0.0f)); //transformacio
+		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(-1.25f,0.5f, -2.0f)); //Transfrom
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		////
 
-		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(1.25f, 0.0f, 0.0f)); //transformacio
+		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(1.25f, 0.5f, -2.0f)); //Transfrom
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		////
 
-		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.0f, 0.0f)); //transformacio
+		////
+		newColor = { 1.0f, 0.0f, 0.5f, 1.0f }; //seleccio de color
+		Cube::updateColor(newColor);
+		////
+
+		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.5f, 0.0f)); //Transfrom
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		////
 
-		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(-2.5f, 0.0f, 0.0f)); //transformacio
+
+		objMat = glm::translate(glm::mat4(1.0f), glm::vec3(-2.5f, 0.5f, 0.0f)); //Transfrom
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		////
 
-		translate = glm::translate(glm::mat4(1.0f), glm::vec3(-1.25f, 0.0f, 1.5f)); //transformacio
-		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 1.0f));
+		translate = glm::translate(glm::mat4(1.0f), glm::vec3(-1.25f, 0.5f, 1.5f)); //Transfrom
+		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 1.0f)); //Scale
 		objMat = translate * scale;
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		////
 
-		translate = glm::translate(glm::mat4(1.0f), glm::vec3(1.25f, 0.0f, 1.5f)); //transformacio
-		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 1.0f));
+		translate = glm::translate(glm::mat4(1.0f), glm::vec3(1.25f, 0.5f, 1.5f)); //Transfrom
+		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 2.0f, 1.0f)); //Scale
 		objMat = translate * scale;
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		////
 
-		translate = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.0f, 2.5f)); //transformacio
-		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f));
+		translate = glm::translate(glm::mat4(1.0f), glm::vec3(2.5f, 0.5f, 2.5f)); //Transfrom
+		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f)); //Scale
 		objMat = translate * scale;
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
 		glDrawElements(GL_TRIANGLE_STRIP, numVerts, GL_UNSIGNED_BYTE, 0);
 		////
 
-		translate = glm::translate(glm::mat4(1.0f), glm::vec3(-2.5f, 0.0f, 2.5f)); //transformacio
-		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f));
+		translate = glm::translate(glm::mat4(1.0f), glm::vec3(-2.5f, 0.5f, 2.5f)); //Transfrom
+		scale = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 3.0f, 1.0f)); //Scale
 		objMat = translate * scale;
 		glUniformMatrix4fv(glGetUniformLocation(cubeProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniform4f(glGetUniformLocation(cubeProgram, "color"), myColor.r, myColor.g, myColor.b, myColor.a);
@@ -664,475 +659,3 @@ void main() {\n\
 
 
 }
-
-////////////////////////////////////////////////// SPHERE
-namespace Sphere {
-	GLuint sphereVao;
-	GLuint sphereVbo;
-	GLuint sphereShaders[3];
-	GLuint sphereProgram;
-	float radius;
-
-	const char* sphere_vertShader =
-		"#version 330\n\
-in vec3 in_Position;\n\
-uniform mat4 mv_Mat;\n\
-void main() {\n\
-	gl_Position = mv_Mat * vec4(in_Position, 1.0);\n\
-}";
-	const char* sphere_geomShader =
-		"#version 330\n\
-layout(points) in;\n\
-layout(triangle_strip, max_vertices = 4) out;\n\
-out vec4 eyePos;\n\
-out vec4 centerEyePos;\n\
-uniform mat4 projMat;\n\
-uniform float radius;\n\
-vec4 nu_verts[4];\n\
-void main() {\n\
-	vec3 n = normalize(-gl_in[0].gl_Position.xyz);\n\
-	vec3 up = vec3(0.0, 1.0, 0.0);\n\
-	vec3 u = normalize(cross(up, n));\n\
-	vec3 v = normalize(cross(n, u));\n\
-	nu_verts[0] = vec4(-radius*u - radius*v, 0.0); \n\
-	nu_verts[1] = vec4( radius*u - radius*v, 0.0); \n\
-	nu_verts[2] = vec4(-radius*u + radius*v, 0.0); \n\
-	nu_verts[3] = vec4( radius*u + radius*v, 0.0); \n\
-	centerEyePos = gl_in[0].gl_Position;\n\
-	for (int i = 0; i < 4; ++i) {\n\
-		eyePos = (gl_in[0].gl_Position + nu_verts[i]);\n\
-		gl_Position = projMat * eyePos;\n\
-		EmitVertex();\n\
-	}\n\
-	EndPrimitive();\n\
-}";
-	const char* sphere_fragShader_flatColor =
-		"#version 330\n\
-in vec4 eyePos;\n\
-in vec4 centerEyePos;\n\
-out vec4 out_Color;\n\
-uniform mat4 projMat;\n\
-uniform mat4 mv_Mat;\n\
-uniform vec4 color;\n\
-uniform float radius;\n\
-void main() {\n\
-	vec4 diff = eyePos - centerEyePos;\n\
-	float distSq2C = dot(diff, diff);\n\
-	if (distSq2C > (radius*radius)) discard;\n\
-	float h = sqrt(radius*radius - distSq2C);\n\
-	vec4 nuEyePos = vec4(eyePos.xy, eyePos.z + h, 1.0);\n\
-	vec4 nuPos = projMat * nuEyePos;\n\
-	gl_FragDepth = ((nuPos.z / nuPos.w) + 1) * 0.5;\n\
-	vec3 normal = normalize(nuEyePos - centerEyePos).xyz;\n\
-	out_Color = vec4(color.xyz * dot(normal, (mv_Mat*vec4(0.0, 1.0, 0.0, 0.0)).xyz) + color.xyz * 0.3, 1.0 );\n\
-}";
-
-	bool shadersCreated = false;
-	void createSphereShaderAndProgram() {
-		if (shadersCreated) return;
-
-		sphereShaders[0] = compileShader(sphere_vertShader, GL_VERTEX_SHADER, "sphereVert");
-		sphereShaders[1] = compileShader(sphere_geomShader, GL_GEOMETRY_SHADER, "sphereGeom");
-		sphereShaders[2] = compileShader(sphere_fragShader_flatColor, GL_FRAGMENT_SHADER, "sphereFrag");
-
-		sphereProgram = glCreateProgram();
-		glAttachShader(sphereProgram, sphereShaders[0]);
-		glAttachShader(sphereProgram, sphereShaders[1]);
-		glAttachShader(sphereProgram, sphereShaders[2]);
-		glBindAttribLocation(sphereProgram, 0, "in_Position");
-		linkProgram(sphereProgram);
-
-		shadersCreated = true;
-	}
-	void cleanupSphereShaderAndProgram() {
-		if (!shadersCreated) return;
-		glDeleteProgram(sphereProgram);
-		glDeleteShader(sphereShaders[0]);
-		glDeleteShader(sphereShaders[1]);
-		glDeleteShader(sphereShaders[2]);
-		shadersCreated = false;
-	}
-
-	void setupSphere(glm::vec3 pos, float radius) {
-		Sphere::radius = radius;
-		glGenVertexArrays(1, &sphereVao);
-		glBindVertexArray(sphereVao);
-		glGenBuffers(1, &sphereVbo);
-
-		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3, &pos, GL_DYNAMIC_DRAW);
-		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
-
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		createSphereShaderAndProgram();
-	}
-	void cleanupSphere() {
-		glDeleteBuffers(1, &sphereVbo);
-		glDeleteVertexArrays(1, &sphereVao);
-
-		cleanupSphereShaderAndProgram();
-	}
-	void updateSphere(glm::vec3 pos, float radius) {
-		glBindBuffer(GL_ARRAY_BUFFER, sphereVbo);
-		float* buff = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-		buff[0] = pos.x;
-		buff[1] = pos.y;
-		buff[2] = pos.z;
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		Sphere::radius = radius;
-	}
-	void drawSphere() {
-		glBindVertexArray(sphereVao);
-		glUseProgram(sphereProgram);
-		glUniformMatrix4fv(glGetUniformLocation(sphereProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
-		glUniformMatrix4fv(glGetUniformLocation(sphereProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RV::_modelView));
-		glUniformMatrix4fv(glGetUniformLocation(sphereProgram, "projMat"), 1, GL_FALSE, glm::value_ptr(RV::_projection));
-		glUniform4f(glGetUniformLocation(sphereProgram, "color"), 0.6f, 0.1f, 0.1f, 1.f);
-		glUniform1f(glGetUniformLocation(sphereProgram, "radius"), Sphere::radius);
-		glDrawArrays(GL_POINTS, 0, 1);
-
-		glUseProgram(0);
-		glBindVertexArray(0);
-	}
-}
-
-////////////////////////////////////////////////// CAPSULE
-namespace Capsule {
-	GLuint capsuleVao;
-	GLuint capsuleVbo[2];
-	GLuint capsuleShader[3];
-	GLuint capsuleProgram;
-	float radius;
-
-	const char* capsule_vertShader =
-		"#version 330\n\
-in vec3 in_Position;\n\
-uniform mat4 mv_Mat;\n\
-void main() {\n\
-	gl_Position = mv_Mat * vec4(in_Position, 1.0);\n\
-}";
-	const char* capsule_geomShader =
-		"#version 330\n\
-layout(lines) in; \n\
-layout(triangle_strip, max_vertices = 14) out;\n\
-out vec3 eyePos;\n\
-out vec3 capPoints[2];\n\
-uniform mat4 projMat;\n\
-uniform float radius;\n\
-vec3 boxVerts[8];\n\
-int boxIdx[14];\n\
-void main(){\n\
-	vec3 A = gl_in[0].gl_Position.xyz;\n\
-	vec3 B = gl_in[1].gl_Position.xyz;\n\
-	if(gl_in[1].gl_Position.x < gl_in[0].gl_Position.x) {\n\
-		A = gl_in[1].gl_Position.xyz;\n\
-		B = gl_in[0].gl_Position.xyz;\n\
-	}\n\
-	vec3 u = vec3(0.0, 1.0, 0.0);\n\
-	if (abs(dot(u, normalize(gl_in[1].gl_Position.xyz - gl_in[0].gl_Position.xyz))) - 1.0 < 1e-6) {\n\
-		if(gl_in[1].gl_Position.y > gl_in[0].gl_Position.y) {\n\
-			A = gl_in[1].gl_Position.xyz;\n\
-			B = gl_in[0].gl_Position.xyz;\n\
-		}\n\
-		u = vec3(1.0, 0.0, 0.0);\n\
-	}\n\
-	vec3 Am = normalize(A - B); \n\
-	vec3 Bp = -Am;\n\
-	vec3 v = normalize(cross(Am, u)) * radius;\n\
-	u = normalize(cross(v, Am)) * radius;\n\
-	Am *= radius;\n\
-	Bp *= radius;\n\
-	boxVerts[0] = A + Am - u - v;\n\
-	boxVerts[1] = A + Am + u - v;\n\
-	boxVerts[2] = A + Am + u + v;\n\
-	boxVerts[3] = A + Am - u + v;\n\
-	boxVerts[4] = B + Bp - u - v;\n\
-	boxVerts[5] = B + Bp + u - v;\n\
-	boxVerts[6] = B + Bp + u + v;\n\
-	boxVerts[7] = B + Bp - u + v;\n\
-	boxIdx = int[](0, 3, 4, 7, 6, 3, 2, 1, 6, 5, 4, 1, 0, 3);\n\
-	capPoints[0] = A;\n\
-	capPoints[1] = B;\n\
-	for (int i = 0; i<14; ++i) {\n\
-		eyePos = boxVerts[boxIdx[i]];\n\
-		gl_Position = projMat * vec4(boxVerts[boxIdx[i]], 1.0);\n\
-		EmitVertex();\n\
-	}\n\
-	EndPrimitive();\n\
-}";
-	const char* capsule_fragShader_flatColor =
-		"#version 330\n\
-in vec3 eyePos;\n\
-in vec3 capPoints[2];\n\
-out vec4 out_Color;\n\
-uniform mat4 projMat;\n\
-uniform mat4 mv_Mat;\n\
-uniform vec4 color;\n\
-uniform float radius;\n\
-const int lin_steps = 30;\n\
-const int bin_steps = 5;\n\
-vec3 closestPointInSegment(vec3 p, vec3 a, vec3 b) {\n\
-	vec3 pa = p - a, ba = b - a;\n\
-	float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);\n\
-	return a + ba*h;\n\
-}\n\
-void main() {\n\
-	vec3 viewDir = normalize(eyePos);\n\
-	float step = radius / 5.0;\n\
-	vec3 nuPB = eyePos;\n\
-	int i = 0;\n\
-	for(i = 0; i < lin_steps; ++i) {\n\
-		nuPB = eyePos + viewDir*step*i;\n\
-		vec3 C = closestPointInSegment(nuPB, capPoints[0], capPoints[1]);\n\
-		float dist = length(C - nuPB) - radius;\n\
-		if(dist < 0.0) break;\n\
-	}\n\
-	if(i==lin_steps) discard;\n\
-	vec3 nuPA = nuPB - viewDir*step;\n\
-	vec3 C;\n\
-	for(i = 0; i < bin_steps; ++i) {\n\
-		vec3 nuPC = nuPA + (nuPB - nuPA)*0.5; \n\
-		C = closestPointInSegment(nuPC, capPoints[0], capPoints[1]); \n\
-		float dist = length(C - nuPC) - radius; \n\
-		if(dist > 0.0) nuPA = nuPC; \n\
-		else nuPB = nuPC; \n\
-	}\n\
-	vec4 nuPos = projMat * vec4(nuPA, 1.0);\n\
-	gl_FragDepth = ((nuPos.z / nuPos.w) + 1) * 0.5;\n\
-	vec3 normal = normalize(nuPA - C);\n\
-	out_Color = vec4(color.xyz * dot(normal, (mv_Mat*vec4(0.0, 1.0, 0.0, 0.0)).xyz) + color.xyz * 0.3, 1.0 );\n\
-}";
-
-	void setupCapsule(glm::vec3 posA, glm::vec3 posB, float radius) {
-		Capsule::radius = radius;
-		glGenVertexArrays(1, &capsuleVao);
-		glBindVertexArray(capsuleVao);
-		glGenBuffers(2, capsuleVbo);
-
-		float capsuleVerts[] = {
-			posA.x, posA.y, posA.z,
-			posB.x, posB.y, posB.z
-		};
-		GLubyte capsuleIdx[] = {
-			0, 1
-		};
-
-		glBindBuffer(GL_ARRAY_BUFFER, capsuleVbo[0]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6, capsuleVerts, GL_DYNAMIC_DRAW);
-		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, capsuleVbo[1]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte) * 2, capsuleIdx, GL_STATIC_DRAW);
-
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		capsuleShader[0] = compileShader(capsule_vertShader, GL_VERTEX_SHADER, "capsuleVert");
-		capsuleShader[1] = compileShader(capsule_geomShader, GL_GEOMETRY_SHADER, "capsuleGeom");
-		capsuleShader[2] = compileShader(capsule_fragShader_flatColor, GL_FRAGMENT_SHADER, "capsuleFrag");
-
-		capsuleProgram = glCreateProgram();
-		glAttachShader(capsuleProgram, capsuleShader[0]);
-		glAttachShader(capsuleProgram, capsuleShader[1]);
-		glAttachShader(capsuleProgram, capsuleShader[2]);
-		glBindAttribLocation(capsuleProgram, 0, "in_Position");
-		linkProgram(capsuleProgram);
-	}
-	void cleanupCapsule() {
-		glDeleteBuffers(2, capsuleVbo);
-		glDeleteVertexArrays(1, &capsuleVao);
-
-		glDeleteProgram(capsuleProgram);
-		glDeleteShader(capsuleShader[0]);
-		glDeleteShader(capsuleShader[1]);
-		glDeleteShader(capsuleShader[2]);
-	}
-	void updateCapsule(glm::vec3 posA, glm::vec3 posB, float radius) {
-		float vertPos[] = { posA.x, posA.y, posA.z, posB.z, posB.y, posB.z };
-		glBindBuffer(GL_ARRAY_BUFFER, capsuleVbo[0]);
-		float* buff = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-		buff[0] = posA.x; buff[1] = posA.y; buff[2] = posA.z;
-		buff[3] = posB.x; buff[4] = posB.y; buff[5] = posB.z;
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		Capsule::radius = radius;
-	}
-	void drawCapsule() {
-		glBindVertexArray(capsuleVao);
-		glUseProgram(capsuleProgram);
-		glUniformMatrix4fv(glGetUniformLocation(capsuleProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
-		glUniformMatrix4fv(glGetUniformLocation(capsuleProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RV::_modelView));
-		glUniformMatrix4fv(glGetUniformLocation(capsuleProgram, "projMat"), 1, GL_FALSE, glm::value_ptr(RV::_projection));
-		glUniform4fv(glGetUniformLocation(capsuleProgram, "camPoint"), 1, &RV::_cameraPoint[0]);
-		glUniform4f(glGetUniformLocation(capsuleProgram, "color"), 0.1f, 0.6f, 0.1f, 1.f);
-		glUniform1f(glGetUniformLocation(capsuleProgram, "radius"), Capsule::radius);
-		glDrawElements(GL_LINES, 2, GL_UNSIGNED_BYTE, 0);
-
-		glUseProgram(0);
-		glBindVertexArray(0);
-	}
-}
-
-////////////////////////////////////////////////// PARTICLES
-// Same rendering as Sphere (reusing shaders)
-namespace LilSpheres {
-	GLuint particlesVao;
-	GLuint particlesVbo;
-	float radius;
-	int numparticles;
-	extern const int maxParticles = SHRT_MAX;
-
-	void setupParticles(int numTotalParticles, float radius) {
-		assert(numTotalParticles > 0);
-		assert(numTotalParticles <= SHRT_MAX);
-		numparticles = numTotalParticles;
-		LilSpheres::radius = radius;
-
-		glGenVertexArrays(1, &particlesVao);
-		glBindVertexArray(particlesVao);
-		glGenBuffers(1, &particlesVbo);
-
-		glBindBuffer(GL_ARRAY_BUFFER, particlesVbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * numparticles, 0, GL_DYNAMIC_DRAW);
-		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
-
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		Sphere::createSphereShaderAndProgram();
-	}
-	void cleanupParticles() {
-		glDeleteVertexArrays(1, &particlesVao);
-		glDeleteBuffers(1, &particlesVbo);
-
-		Sphere::cleanupSphereShaderAndProgram();
-	}
-	void updateParticles(int startIdx, int count, float* array_data) {
-		glBindBuffer(GL_ARRAY_BUFFER, particlesVbo);
-		float* buff = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-		buff = &buff[3 * startIdx];
-		for (int i = 0; i < 3 * count; ++i) {
-			buff[i] = array_data[i];
-		}
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
-	void drawParticles(int startIdx, int count) {
-		glBindVertexArray(particlesVao);
-		glUseProgram(Sphere::sphereProgram);
-		glUniformMatrix4fv(glGetUniformLocation(Sphere::sphereProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
-		glUniformMatrix4fv(glGetUniformLocation(Sphere::sphereProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RV::_modelView));
-		glUniformMatrix4fv(glGetUniformLocation(Sphere::sphereProgram, "projMat"), 1, GL_FALSE, glm::value_ptr(RV::_projection));
-		glUniform4f(glGetUniformLocation(Sphere::sphereProgram, "color"), 0.1f, 0.1f, 0.6f, 1.f);
-		glUniform1f(glGetUniformLocation(Sphere::sphereProgram, "radius"), LilSpheres::radius);
-		glDrawArrays(GL_POINTS, startIdx, count);
-
-		glUseProgram(0);
-		glBindVertexArray(0);
-	}
-}
-
-////////////////////////////////////////////////// CLOTH
-namespace ClothMesh {
-	GLuint clothVao;
-	GLuint clothVbo[2];
-	GLuint clothShaders[2];
-	GLuint clothProgram;
-	extern const int numCols = 14;
-	extern const int numRows = 18;
-	extern const int numVerts = numRows * numCols;
-	int numVirtualVerts;
-
-	const char* cloth_vertShader =
-		"#version 330\n\
-in vec3 in_Position;\n\
-uniform mat4 mvpMat;\n\
-void main() {\n\
-	gl_Position = mvpMat * vec4(in_Position, 1.0);\n\
-}";
-	const char* cloth_fragShader =
-		"#version 330\n\
-uniform vec4 color;\n\
-out vec4 out_Color;\n\
-void main() {\n\
-	out_Color = color;\n\
-}";
-
-	void setupClothMesh() {
-		glGenVertexArrays(1, &clothVao);
-		glBindVertexArray(clothVao);
-		glGenBuffers(2, clothVbo);
-
-		glBindBuffer(GL_ARRAY_BUFFER, clothVbo[0]);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 3 * numVerts, 0, GL_DYNAMIC_DRAW);
-		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(0);
-
-		glPrimitiveRestartIndex(UCHAR_MAX);
-		constexpr int facesVertsIdx = 5 * (numCols - 1) * (numRows - 1);
-		GLubyte facesIdx[facesVertsIdx] = { 0 };
-		for (int i = 0; i < (numRows - 1); ++i) {
-			for (int j = 0; j < (numCols - 1); ++j) {
-				facesIdx[5 * (i*(numCols - 1) + j) + 0] = i*numCols + j;
-				facesIdx[5 * (i*(numCols - 1) + j) + 1] = (i + 1)*numCols + j;
-				facesIdx[5 * (i*(numCols - 1) + j) + 2] = (i + 1)*numCols + (j + 1);
-				facesIdx[5 * (i*(numCols - 1) + j) + 3] = i*numCols + (j + 1);
-				facesIdx[5 * (i*(numCols - 1) + j) + 4] = UCHAR_MAX;
-			}
-		}
-		numVirtualVerts = facesVertsIdx;
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, clothVbo[1]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte)*numVirtualVerts, facesIdx, GL_STATIC_DRAW);
-
-		glBindVertexArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		clothShaders[0] = compileShader(cloth_vertShader, GL_VERTEX_SHADER, "clothVert");
-		clothShaders[1] = compileShader(cloth_fragShader, GL_FRAGMENT_SHADER, "clothFrag");
-
-		clothProgram = glCreateProgram();
-		glAttachShader(clothProgram, clothShaders[0]);
-		glAttachShader(clothProgram, clothShaders[1]);
-		glBindAttribLocation(clothProgram, 0, "in_Position");
-		linkProgram(clothProgram);
-	}
-	void cleanupClothMesh() {
-		glDeleteBuffers(2, clothVbo);
-		glDeleteVertexArrays(1, &clothVao);
-
-		glDeleteProgram(clothProgram);
-		glDeleteShader(clothShaders[0]);
-		glDeleteShader(clothShaders[1]);
-	}
-	void updateClothMesh(float *array_data) {
-		glBindBuffer(GL_ARRAY_BUFFER, clothVbo[0]);
-		float* buff = (float*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-		for (int i = 0; i < 3 * numVerts; ++i) {
-			buff[i] = array_data[i];
-		}
-		glUnmapBuffer(GL_ARRAY_BUFFER);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
-	void drawClothMesh() {
-		glEnable(GL_PRIMITIVE_RESTART);
-		glBindVertexArray(clothVao);
-		glUseProgram(clothProgram);
-		glUniformMatrix4fv(glGetUniformLocation(clothProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RV::_MVP));
-		glUniform4f(glGetUniformLocation(clothProgram, "color"), 0.1f, 1.f, 1.f, 0.f);
-		glDrawElements(GL_LINE_LOOP, numVirtualVerts, GL_UNSIGNED_BYTE, 0);
-
-		glUseProgram(0);
-		glBindVertexArray(0);
-		glDisable(GL_PRIMITIVE_RESTART);
-	}
-}
-
