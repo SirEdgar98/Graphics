@@ -1018,21 +1018,23 @@ namespace MyFirstShader {
 
 		static const char * geom_shader_sourece[] =
 		{
-			{ "#version 330\n\
-			uniform float time; \n\
-			layout(triangles) in; \n\
-			layout(triangle_strip, max_vertices = 6) out; \n\
-			void main() {			\n\
+			"#version 330 \n\
+			uniform mat4 rotation;\n\
+			layout(triangles) in;\n\
+			layout(triangle_strip, max_vertices = 6) out;\n\
+			void main()\n\
+			{\n\
 				const vec4 vertices[4] = vec4[4](vec4(0.25, -0.25, 0.5, 1.0),\n\
-					vec4(0.25, 0.25, 0.5, 1.0),\n\
-					vec4(-0.25,  -0.25, 0.5, 1.0),\n\
-					vec4(-0.25,  0.25, 0.5, 1.0)); \n\
-				for (int i = 0; i < 4; ++i) {					\n\
-						gl_Position = vertices[i] + gl_in[0].gl_Position; \n\
-						EmitVertex(); \n\
+										vec4(0.25, 0.25, 0.5, 1.0),\n\
+										vec4(-0.25, -0.25, 0.5, 1.0),\n\
+										vec4(-0.25, 0.25, 0.5, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = (rotation * vertices[i] ) + gl_in[0].gl_Position;\n\
+					EmitVertex();\n\
 				}\n\
-					EndPrimitive(); \n\
-		}"}
+				EndPrimitive();\n\
+			}" 
 		};
 
 
@@ -1083,7 +1085,11 @@ namespace MyFirstShader {
 	void myRenderCode(double currentTime) {
 
 		glUseProgram(myRenderProgram);
-		glUniform1f(glGetUniformLocation(myRenderProgram, "time"), (GLfloat)currentTime);
+		glm::mat4 rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
+			0.f, 1.f, 0.f, 0.f,
+			sin(currentTime), 0.f, cos(currentTime), 0.f,
+			0.f, 0.f, 0.f, 1.f };
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(rotation));
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 
