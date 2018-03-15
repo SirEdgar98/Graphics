@@ -1018,27 +1018,21 @@ namespace MyFirstShader {
 
 		static const char * geom_shader_sourece[] =
 		{
-			"#version 330 \n\
-			\n\
-			uniform float time;\n\
-			layout(triangles) in;\n\
-			layout(triangle_strip,max_vertices = 6) out;\n\
-			void main()\n\
-			{\n\
-				for(int i = 0; i<3 ; i++)\n\
-				{\n\
-					gl_Position = gl_in[i].gl_Position + vec4(0.0-sin(time),-0.3,0.0,0.0);\n\
-					EmitVertex();\n\
+			{ "#version 330\n\
+			uniform float time; \n\
+			layout(triangles) in; \n\
+			layout(triangle_strip, max_vertices = 6) out; \n\
+			void main() {			\n\
+				const vec4 vertices[4] = vec4[4](vec4(0.25, -0.25, 0.5, 1.0),\n\
+					vec4(0.25, 0.25, 0.5, 1.0),\n\
+					vec4(-0.25,  -0.25, 0.5, 1.0),\n\
+					vec4(-0.25,  0.25, 0.5, 1.0)); \n\
+				for (int i = 0; i < 4; ++i) {					\n\
+						gl_Position = vertices[i] + gl_in[0].gl_Position; \n\
+						EmitVertex(); \n\
 				}\n\
-				\n\
-					EndPrimitive();\n\
-				for(int i = 0; i<3 ; i++)\n\
-				{\n\
-					gl_Position = gl_in[i].gl_Position + vec4(0.0 + sin(time),0.6,0.0,0.0);\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-			}\n\ "
+					EndPrimitive(); \n\
+		}"}
 		};
 
 
