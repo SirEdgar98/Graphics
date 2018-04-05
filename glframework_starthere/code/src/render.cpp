@@ -38,13 +38,21 @@ namespace MyFirstShader {
 	GLuint myVAO; // VertexArrayObject
 }
 
+namespace Octahedron {
+	GLuint myShaderCompile(void);
+	void myInitCode(void);
+	void myRenderCode(double currentTime);
+	void myCleanupCode(void);
 
-
+	GLuint OctaRenderProgram;
+	GLuint myVAO; // VertexArrayObject
+}
 
 ////////////////
 glm::vec3 cubLaticePos[4]; 
 int numSeeds = 10; 
 float seeds[5];
+////////////////
 
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
@@ -116,11 +124,13 @@ void GLinit(int width, int height) {
 	
 
 	MyFirstShader::myInitCode();
+	Octahedron::myInitCode(); 
 }
 
 void GLcleanup() {
 	
 	MyFirstShader::myCleanupCode();
+	Octahedron::myCleanupCode(); 
 }
 
 void GLrender(double currentTime) {
@@ -136,6 +146,7 @@ void GLrender(double currentTime) {
 	// render code
 
 	MyFirstShader::myRenderCode(currentTime);
+	Octahedron::myRenderCode(currentTime);
 
 
 	ImGui::Render();
@@ -1034,9 +1045,7 @@ namespace MyFirstShader {
 
 		static const GLchar * geom_shader_source[] = {
 			"#version 330 \n\
-			uniform mat4 rotation;\n\
 			uniform mat4 trans;\n\
-			uniform mat4 selfRot;\n\
 			layout(triangles) in;\n\
 			layout(triangle_strip, max_vertices = 24) out;\n\
 			void main()\n\
@@ -1049,7 +1058,7 @@ namespace MyFirstShader {
 				//CARA 1\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = trans*rotation*selfRot*vertices[i]+gl_in[0].gl_Position;\n\
+					gl_Position = trans*vertices[i]+gl_in[0].gl_Position;\n\
 					gl_PrimitiveID = 0;\n\
 					EmitVertex();\n\
 				}\n\
@@ -1062,7 +1071,7 @@ namespace MyFirstShader {
 										vec4(-0.25, 0.25, -0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = trans*rotation*selfRot*vertices2[i]+gl_in[0].gl_Position;\n\
+					gl_Position = trans*vertices2[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 1;\n\
 					EmitVertex();\n\
 				}\n\
@@ -1074,7 +1083,7 @@ namespace MyFirstShader {
 										vec4(-0.25, 0.25, -0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = trans*rotation*selfRot*vertices3[i]+gl_in[0].gl_Position;\n\
+					gl_Position = trans*vertices3[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
@@ -1086,7 +1095,7 @@ namespace MyFirstShader {
 										vec4(0.25, 0.25, -0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = trans*rotation*selfRot*vertices4[i]+gl_in[0].gl_Position;\n\
+					gl_Position = trans*vertices4[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 3;\n\
 					EmitVertex();\n\
 				}\n\
@@ -1098,7 +1107,7 @@ namespace MyFirstShader {
 										vec4(0.25, -0.25, -0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = trans*rotation*selfRot*vertices5[i]+gl_in[0].gl_Position;\n\
+					gl_Position = trans*vertices5[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 4;\n\
 					EmitVertex();\n\
 				}\n\
@@ -1110,14 +1119,13 @@ namespace MyFirstShader {
 										vec4(0.25, 0.25, 0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = trans*rotation*selfRot*vertices6[i]+gl_in[0].gl_Position;\n\
+					gl_Position = trans*vertices6[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
 			}"
 		};
-
 
 
 
@@ -1165,10 +1173,10 @@ namespace MyFirstShader {
 			seeds[i] = rand() % 5;
 		}
 
-		cubLaticePos[0] = { 2.0,0.0,0.0 };  // CUBE UP
-		cubLaticePos[1] = { -2.0,0.0,0.0 }; // CUBE DOWN
-		cubLaticePos[2] = { 0.0,2.0,0.0 };  // CUBE LEFT
-		cubLaticePos[3] = { 0.0,-2.0,0.0 }; // CUBE RIGHT
+		cubLaticePos[0] = { 0.25,0.0,0.0 };  // CUBE UP
+		cubLaticePos[1] = { -0.25,0.0,0.0 }; // CUBE DOWN
+		cubLaticePos[2] = { 0.0,0.25,0.0 };  // CUBE LEFT
+		cubLaticePos[3] = { 0.0,-0.25,0.0 }; // CUBE RIGHT
 
 
 
@@ -1183,10 +1191,6 @@ namespace MyFirstShader {
 								   sin(currentTime), 0.f, cos(currentTime), 0.f,
 								   0.f, 0.f, 0.f, 1.f };
 
-		glm::mat4 rotation =  RV::_MVP; 
-
-		
-		
 		//GEnerate More tehan 1 cube
 		for (int i = 0; i < numSeeds; i++) {
 		glm::mat4 trans = { 1.0, 0.0, 0.0, 0.0,
@@ -1194,11 +1198,11 @@ namespace MyFirstShader {
 							0.0 ,0.0, 1.0, currentTime,   //Modificar por numero para que caiga
 							seeds[i],seeds[i],seeds[i],1.0 };
 
+		glm::mat4 myTransformM = trans*SelfRotation*RV::_MVP; 
+
 		glUseProgram(myRenderProgram);
 		
-		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(rotation));
-		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(SelfRotation));
-		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "trans"), 1, GL_FALSE, glm::value_ptr(trans));
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "trans"), 1, GL_FALSE, glm::value_ptr(myTransformM));
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -1207,19 +1211,23 @@ namespace MyFirstShader {
 		//centered cubic lattice.		
 		for (int i = 0; i < 4; i++)
 		{
-			glm::mat4 cubictrans = { 1.0, 0.0, 0.0, 0.0,
+			glm::mat4 latticeTrans = { 1.0, 0.0, 0.0, 0.0,
 									0.0, 1.0, 0.0, 0.0,
 									0.0 ,0.0, 1.0, 0.0,
 									cubLaticePos[i].x,cubLaticePos[i].y,cubLaticePos[i].z,1.0 };
+			glm::mat4 latticeScale = { 1.0, 0.0, 0.0, 0.0,
+									   0.0, 1.0, 0.0, 0.0,
+									   0.0, 0.0, 1.0, 0.0,
+								       0.0, 0.0, 0.0, 1.0 };
+			glm::mat4 latticeTotalTrans = latticeTrans * RV::_MVP * latticeScale;
 
 			glUseProgram(myRenderProgram);
 
-			glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(rotation));
-			//glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(SelfRotation));
-			glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "trans"), 1, GL_FALSE, glm::value_ptr(cubictrans));
+			glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "trans"), 1, GL_FALSE, glm::value_ptr(latticeTotalTrans));
 
 			glDrawArrays(GL_TRIANGLES, 0, 3);
 		}
+
 
 	}
 	//5. Cleanup shader
@@ -1227,6 +1235,121 @@ namespace MyFirstShader {
 		glDeleteVertexArrays(1, &myVAO);
 		glDeleteProgram(myRenderProgram);
 
+	}
+
+}
+
+
+namespace Octahedron {
+
+	GLuint myShaderCompile(void) {
+		static const GLchar * vertex_shader_source[] =
+		{
+			"#version 330										\n\
+		\n\
+		void main() {\n\
+		const vec4 vertices[3] = vec4[3](vec4( 0.25, -0.25, 0.5, 1.0),\n\
+									   vec4(0.25, 0.25, 0.5, 1.0),\n\
+										vec4( -0.25,  -0.25, 0.5, 1.0));\n\
+		gl_Position = vertices[gl_VertexID];\n\
+		}"
+		};
+
+		//the fragment shader considers gl_PrimitiveID:
+
+		static const GLchar * fragment_shader_source[] =
+		{
+			"#version 330\n\
+			\n\
+			out vec4 color;\n\
+			\n\
+			void main() {\n\
+			const vec4 colors[6] = vec4[6](vec4( 0.4, 0.0, .9, 1.0),\n\
+											vec4(0.25, 0.0, 0.8, 1.0),\n\
+											vec4( 0.5, 0.0, 0.8, 1.0),\n\
+											vec4(0.2, 0.0, 1.0, 1.0),\n\
+											vec4(0.5, 0.0, 1.0, 1.0),\n\
+											vec4( 0.3, 0.0, 0.5, 1.0));\n\
+			color = colors[gl_PrimitiveID ];\n\
+			}" };
+
+		static const GLchar * octageom_shader_source[] = {
+			"#version 330 \n\
+			uniform mat4 octaTrans;\n\
+			layout(triangles) in;\n\
+			layout(triangle_strip, max_vertices = 24) out;\n\
+			void main()\n\
+			{\n\
+			//HEXAGONO \n\
+				const vec4 OctaVertices[3] = vec4[3](vec4(-1.0, -0.5, 0.0, 1.0),\n\
+												 vec4(-1.0, 0.5, 0.0, 1.0),\n\
+												 vec4( 0.0, -2.0, 0.0, 1.0));\n\
+				\n\
+				for (int i = 0; i<3; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				}"
+		};
+
+		GLuint vertex_shader;
+		GLuint fragment_shader;
+		GLuint octageom_shader;
+		GLuint program;
+
+		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
+		glCompileShader(vertex_shader);
+
+
+		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
+		glCompileShader(fragment_shader);
+
+		octageom_shader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(octageom_shader, 1, octageom_shader_source, NULL);
+		glCompileShader(octageom_shader);
+
+		program = glCreateProgram();
+		glAttachShader(program, vertex_shader);
+		glAttachShader(program, fragment_shader);
+		glAttachShader(program, octageom_shader);
+		glLinkProgram(program);
+
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+		glDeleteShader(octageom_shader);
+
+		return program;
+
+
+	}
+
+	void myInitCode(void) {
+		OctaRenderProgram = myShaderCompile();
+		glCreateVertexArrays(1, &myVAO);
+		glBindVertexArray(myVAO);
+	}
+
+	void myRenderCode(double currentTime)
+	{
+		glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
+			0.0, 1.0, 0.0, 0.0,
+			0.0, 0.0, 1.0, 0.0,
+			0.0, 0.0, 0.0, 1.0 };
+
+		glUseProgram(OctaRenderProgram);
+
+		glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(OctaCenter));
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+	void myCleanupCode(void) {
+		glDeleteVertexArrays(1, &myVAO);
+		glDeleteProgram(OctaRenderProgram);
 	}
 
 }
