@@ -42,6 +42,9 @@ namespace MyFirstShader {
 
 
 ////////////////
+glm::vec3 cubLaticePos[4]; 
+int numSeeds = 10; 
+float seeds[5];
 
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
@@ -109,6 +112,7 @@ void GLinit(int width, int height) {
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
 
 	// Setup shaders & geometry
+	
 	
 
 	MyFirstShader::myInitCode();
@@ -1031,6 +1035,8 @@ namespace MyFirstShader {
 		static const GLchar * geom_shader_source[] = {
 			"#version 330 \n\
 			uniform mat4 rotation;\n\
+			uniform mat4 trans;\n\
+			uniform mat4 selfRot;\n\
 			layout(triangles) in;\n\
 			layout(triangle_strip, max_vertices = 24) out;\n\
 			void main()\n\
@@ -1043,7 +1049,7 @@ namespace MyFirstShader {
 				//CARA 1\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*vertices[i]+gl_in[0].gl_Position;\n\
+					gl_Position = trans*rotation*selfRot*vertices[i]+gl_in[0].gl_Position;\n\
 					gl_PrimitiveID = 0;\n\
 					EmitVertex();\n\
 				}\n\
@@ -1056,8 +1062,8 @@ namespace MyFirstShader {
 										vec4(-0.25, 0.25, -0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*vertices2[i]+gl_in[0].gl_Position;\n\
-gl_PrimitiveID = 1;\n\
+					gl_Position = trans*rotation*selfRot*vertices2[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1068,8 +1074,8 @@ gl_PrimitiveID = 1;\n\
 										vec4(-0.25, 0.25, -0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*vertices3[i]+gl_in[0].gl_Position;\n\
-gl_PrimitiveID = 2;\n\
+					gl_Position = trans*rotation*selfRot*vertices3[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1080,8 +1086,8 @@ gl_PrimitiveID = 2;\n\
 										vec4(0.25, 0.25, -0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*vertices4[i]+gl_in[0].gl_Position;\n\
-gl_PrimitiveID = 3;\n\
+					gl_Position = trans*rotation*selfRot*vertices4[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 3;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1092,8 +1098,8 @@ gl_PrimitiveID = 3;\n\
 										vec4(0.25, -0.25, -0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*vertices5[i]+gl_in[0].gl_Position;\n\
-gl_PrimitiveID = 4;\n\
+					gl_Position = trans*rotation*selfRot*vertices5[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 4;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1104,8 +1110,8 @@ gl_PrimitiveID = 4;\n\
 										vec4(0.25, 0.25, 0.25, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
-					gl_Position = rotation*vertices6[i]+gl_in[0].gl_Position;\n\
-gl_PrimitiveID = 5;\n\
+					gl_Position = trans*rotation*selfRot*vertices6[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1153,20 +1159,67 @@ gl_PrimitiveID = 5;\n\
 		glCreateVertexArrays(1, &myVAO);
 		glBindVertexArray(myVAO);
 
+		
+		for (int i = 0; i < numSeeds; i++)
+		{
+			seeds[i] = rand() % 5;
+		}
+
+		cubLaticePos[0] = { 2.0,0.0,0.0 };  // CUBE UP
+		cubLaticePos[1] = { -2.0,0.0,0.0 }; // CUBE DOWN
+		cubLaticePos[2] = { 0.0,2.0,0.0 };  // CUBE LEFT
+		cubLaticePos[3] = { 0.0,-2.0,0.0 }; // CUBE RIGHT
+
+
 
 	}
 
 
 	void myRenderCode(double currentTime) {
 
+		//SelfRotation Matrix
+		glm::mat4 SelfRotation = { cos(currentTime), -sin(currentTime), -sin(currentTime), 0.f,
+								   sin(currentTime), cos(currentTime), 0.f, 0.f,
+								   sin(currentTime), 0.f, cos(currentTime), 0.f,
+								   0.f, 0.f, 0.f, 1.f };
+
+		glm::mat4 rotation =  RV::_MVP; 
+
+		
+		
+		//GEnerate More tehan 1 cube
+		for (int i = 0; i < numSeeds; i++) {
+		glm::mat4 trans = { 1.0, 0.0, 0.0, 0.0,
+							0.0, 1.0, 0.0, 0.0,
+							0.0 ,0.0, 1.0, currentTime,   //Modificar por numero para que caiga
+							seeds[i],seeds[i],seeds[i],1.0 };
+
 		glUseProgram(myRenderProgram);
-		glm::mat4 rotation = { cos(currentTime), 0.f, -sin(currentTime), 0.f,
-			0.f, 1.f, 0.f, 0.f,
-			sin(currentTime), 0.f, cos(currentTime), 0.f,
-			0.f, 0.f, 0.f, 1.f };
+		
 		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(rotation));
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(SelfRotation));
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "trans"), 1, GL_FALSE, glm::value_ptr(trans));
+
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
+		}
+
+		//centered cubic lattice.		
+		for (int i = 0; i < 4; i++)
+		{
+			glm::mat4 cubictrans = { 1.0, 0.0, 0.0, 0.0,
+									0.0, 1.0, 0.0, 0.0,
+									0.0 ,0.0, 1.0, 0.0,
+									cubLaticePos[i].x,cubLaticePos[i].y,cubLaticePos[i].z,1.0 };
+
+			glUseProgram(myRenderProgram);
+
+			glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "rotation"), 1, GL_FALSE, glm::value_ptr(rotation));
+			//glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "selfRot"), 1, GL_FALSE, glm::value_ptr(SelfRotation));
+			glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "trans"), 1, GL_FALSE, glm::value_ptr(cubictrans));
+
+			glDrawArrays(GL_TRIANGLES, 0, 3);
+		}
 
 	}
 	//5. Cleanup shader
