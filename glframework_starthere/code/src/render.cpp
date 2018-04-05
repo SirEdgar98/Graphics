@@ -123,13 +123,13 @@ void GLinit(int width, int height) {
 	
 	
 
-	MyFirstShader::myInitCode();
+	//MyFirstShader::myInitCode();
 	Octahedron::myInitCode(); 
 }
 
 void GLcleanup() {
 	
-	MyFirstShader::myCleanupCode();
+	//MyFirstShader::myCleanupCode();
 	Octahedron::myCleanupCode(); 
 }
 
@@ -145,7 +145,7 @@ void GLrender(double currentTime) {
 
 	// render code
 
-	MyFirstShader::myRenderCode(currentTime);
+	//MyFirstShader::myRenderCode(currentTime);
 	Octahedron::myRenderCode(currentTime);
 
 
@@ -1239,17 +1239,17 @@ namespace MyFirstShader {
 
 }
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////////
 namespace Octahedron {
 
 	GLuint myShaderCompile(void) {
 		static const GLchar * vertex_shader_source[] =
 		{
-			"#version 330										\n\
+		"#version 330\n\
 		\n\
 		void main() {\n\
 		const vec4 vertices[3] = vec4[3](vec4( 0.25, -0.25, 0.5, 1.0),\n\
-									   vec4(0.25, 0.25, 0.5, 1.0),\n\
+									    vec4(0.25, 0.25, 0.5, 1.0),\n\
 										vec4( -0.25,  -0.25, 0.5, 1.0));\n\
 		gl_Position = vertices[gl_VertexID];\n\
 		}"
@@ -1277,18 +1277,213 @@ namespace Octahedron {
 			"#version 330 \n\
 			uniform mat4 octaTrans;\n\
 			layout(triangles) in;\n\
-			layout(triangle_strip, max_vertices = 24) out;\n\
+			layout(triangle_strip, max_vertices = 100) out;\n\
 			void main()\n\
 			{\n\
 			//HEXAGONO \n\
-				const vec4 OctaVertices[3] = vec4[3](vec4(-1.0, -0.5, 0.0, 1.0),\n\
-												 vec4(-1.0, 0.5, 0.0, 1.0),\n\
-												 vec4( 0.0, -2.0, 0.0, 1.0));\n\
+			//CARA 1 \n\
+				const vec4 OctaVertices[6] = vec4[6](vec4( -1.41, 0.0, -2.83, 1.0),\n\
+													 vec4( -2.83, 0.0, -1.41, 1.0),\n\
+													 vec4( 0.0, 1.41, -2.83, 1.0),\n\
+													 vec4( -2.83, 1.41, 0.0, 1.0),\n\
+													 vec4( 0.0, 2.83, -1.41, 1.0),\n\
+													 vec4( -1.41, 2.83, 0.0, 1.0));\n\
 				\n\
-				for (int i = 0; i<3; i++)\n\
+				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 1;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 2 \n\
+				const vec4 OctaVertices2[6] = vec4[6](vec4( 0.0, -1.41, -2.83, 1.0),\n\
+													 vec4( 0.0, -2.83, -1.41, 1.0),\n\
+													 vec4( -1.41, 0.0, -2.83, 1.0),\n\
+													 vec4( -1.41, -2.83, 0.0, 1.0),\n\
+													 vec4( -2.83, 0.0, -1.41, 1.0),\n\
+													 vec4( -2.83, -1.41, 0.0, 1.0));\n\
+				\n\
+				for (int i = 0; i<6; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices2[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 3 \n\
+				const vec4 OctaVertices3[6] = vec4[6](vec4( 1.41, 0.0, -2.83, 1.0),\n\
+													 vec4( 2.83, 0.0, -1.41, 1.0),\n\
+													 vec4( 0.0, -1.41, -2.83, 1.0),\n\
+													 vec4( 2.83, -1.41, 0.0, 1.0),\n\
+													 vec4( 0.0, -2.83, -1.41, 1.0),\n\
+													 vec4( 1.41, -2.83, 0.0, 1.0));\n\
+				\n\
+				for (int i = 0; i<6; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices3[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 4 \n\
+				const vec4 OctaVertices4[6] = vec4[6](vec4( 0.0, 1.41, -2.83, 1.0),\n\
+													 vec4( 0.0, 2.83, -1.41, 1.0),\n\
+													 vec4( 1.41, 0.0, -2.83, 1.0),\n\
+													 vec4( 1.41, 2.83, 0.0, 1.0),\n\
+													 vec4( 2.83, 0.0, -1.41, 1.0),\n\
+													 vec4( 2.83, 1.41, 0.0, 1.0));\n\
+				\n\
+				for (int i = 0; i<6; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices4[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 5 \n\
+				const vec4 OctaVertices5[6] = vec4[6](vec4( -2.83, 1.41, 0.0, 1.0),\n\
+													 vec4( -2.83, 0.0, 1.41, 1.0),\n\
+													 vec4(-1.41, 2.83, 0.0, 1.0),\n\
+													 vec4( -1.41, 0.0, 2.83, 1.0),\n\
+													 vec4(0.0, 2.83, 1.41, 1.0), \n\
+													 vec4( 0.0, 1.41, 2.83, 1.0));\n\
+				\n\
+				for (int i = 0; i<6; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices5[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 6 \n\
+				const vec4 OctaVertices6[6] = vec4[6](vec4( -1.41, -2.83, 0.0, 1.0),\n\
+													 vec4( 0.0, -2.83, 1.41, 1.0),\n\
+													 vec4( -2.83, -1.41, 0.0, 1.0),\n\
+													 vec4( 0.0, -1.41, 2.83, 1.0),\n\
+													 vec4( -2.83, 0.0, 1.41, 1.0),\n\
+													 vec4( -1.41, 0.0, 2.83, 1.0));\n\
+				\n\
+				for (int i = 0; i<6; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices6[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 7 \n\
+				const vec4 OctaVertices7[6] = vec4[6](vec4( 2.83, -1.41, 0.0, 1.0),\n\
+													 vec4( 2.83, 0.0, 1.41, 1.0),\n\
+													 vec4( 1.41, -2.83, 0.0, 1.0),\n\
+													 vec4( 1.41, 0.0, 2.83, 1.0),\n\
+													 vec4( 0.0, -2.83, 1.41, 1.0),\n\
+													 vec4( 0.0, -1.41, 2.83, 1.0));\n\
+				\n\
+				for (int i = 0; i<6; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices7[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 8 \n\
+				const vec4 OctaVertices8[6] = vec4[6](vec4( 1.41, 2.83, 0.0, 1.0),\n\
+													 vec4( 0.0, 2.83, 1.41, 1.0),\n\
+													 vec4( 2.83, 1.41, 0.0, 1.0),\n\
+													 vec4( 0.0, 1.41, 2.83, 1.0),\n\
+													 vec4( 2.83, 0.0, 1.41, 1.0),\n\
+													 vec4( 1.41, 0.0, 2.83, 1.0));\n\
+				\n\
+				for (int i = 0; i<6; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices8[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CUADRADOS\n\
+				//CARA 1\n\
+				const vec4 QuadVertices[4]= vec4[4](vec4(2.83, 0.0, -1.41, 1.0),\n\
+										vec4(2.83, 1.41, 0.0, 1.0),\n\
+										vec4(2.83, -1.41, 0.0, 1.0),\n\
+										vec4(2.83, 0.0, 1.41, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVertices[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 2\n\
+				const vec4 QuadVertices2[4]= vec4[4](vec4(0.0, 2.83, -1.41, 1.0),\n\
+										vec4(-1.41, 2.83, 0.0, 1.0),\n\
+										vec4(1.41, 2.83, 0.0, 1.0),\n\
+										vec4(0.0, 2.83, 1.41, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVertices2[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 3\n\
+				const vec4 QuadVertices3[4]= vec4[4](vec4(-2.83, 0.0, -1.41, 1.0),\n\
+										vec4(-2.83, -1.41, 0.0, 1.0),\n\
+										vec4(-2.83, 1.41, 0.0, 1.0),\n\
+										vec4(-2.83, 0.0, 1.41, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVertices3[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 4\n\
+				const vec4 QuadVertices4[4]= vec4[4](vec4(0.0, -2.83, -1.41, 1.0),\n\
+										vec4(1.41, -2.83, 0.0, 1.0),\n\
+										vec4(-1.41, -2.83, 0.0, 1.0),\n\
+										vec4(0.0, -2.83, 1.41, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVertices4[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 5\n\
+				const vec4 QuadVertices5[4]= vec4[4](vec4(1.41, 0.0, 2.83, 1.0),\n\
+										vec4(0.0, 1.41, 2.83, 1.0),\n\
+										vec4(0.0, -1.41, 2.83, 1.0),\n\
+										vec4(-1.41, 0.0, 2.83, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVertices5[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 6\n\
+				const vec4 QuadVertices6[4]= vec4[4](vec4(-1.41, 0.0, -2.83, 1.0),\n\
+										vec4(0.0, 1.41, -2.83, 1.0),\n\
+										vec4(0.0, -1.41, -2.83, 1.0),\n\
+										vec4(1.41, 0.0, -2.83, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVertices6[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1303,7 +1498,6 @@ namespace Octahedron {
 		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
 		glCompileShader(vertex_shader);
-
 
 		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
@@ -1341,6 +1535,9 @@ namespace Octahedron {
 			0.0, 0.0, 1.0, 0.0,
 			0.0, 0.0, 0.0, 1.0 };
 
+		OctaCenter *= RV::_MVP; 
+
+		
 		glUseProgram(OctaRenderProgram);
 
 		glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(OctaCenter));
