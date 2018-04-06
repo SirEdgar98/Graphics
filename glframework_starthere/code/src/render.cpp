@@ -1185,10 +1185,10 @@ namespace MyFirstShader {
 
 		
 
-		cubLaticePos[0] = { 0.5,0.0,0.5 };  // CUBE UP
-		cubLaticePos[1] = { -0.5,0.0,0.0 }; // CUBE DOWN
-		cubLaticePos[2] = { 0.0,0.5,0.5 };  // CUBE LEFT
-		cubLaticePos[3] = { 0.0,-0.5,0.0 }; // CUBE RIGHT
+		cubLaticePos[0] = { 0.5,0.0,0.0 };  // CUBE Left
+		cubLaticePos[1] = { -0.5,0.0,0.0 }; // CUBE Right
+		cubLaticePos[2] = { 0.0,0.5,0.5 };  // CUBE Up
+		cubLaticePos[3] = { 0.0,-0.5,0.5 }; // CUBE Down
 
 
 
@@ -1572,7 +1572,7 @@ namespace Octahedron {
 				0.0, 0.0, 1.0, 0.0,
 				octaLaticePos[i].x, octaLaticePos[i].y, octaLaticePos[i].z, 1.0 };
 
-			OctaCenter *= RV::_MVP;
+			OctaCenter = RV::_MVP * OctaCenter;
 
 
 			glUseProgram(OctaRenderProgram);
