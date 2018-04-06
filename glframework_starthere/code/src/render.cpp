@@ -1319,6 +1319,7 @@ namespace Octahedron {
 		static const GLchar * octageom_shader_source[] = {
 			"#version 330 \n\
 			uniform mat4 octaTrans;\n\
+			uniform float param;\n\
 			layout(triangles) in;\n\
 			layout(triangle_strip, max_vertices = 100) out;\n\
 			void main()\n\
@@ -1588,6 +1589,7 @@ namespace Octahedron {
 	void myRenderCode(double currentTime)
 	{
 		glm::mat4 OctaSelfRotation;
+		float param = 0; // Parameter for transformation between cube and octahedron between 0 and 1
 		if (selected == 4) {
 			OctaSelfRotation = { 1.0, 0.0, 0.0, 0.f,
 				0.0, cos(currentTime), -sin(currentTime), 0.f,
@@ -1611,6 +1613,7 @@ namespace Octahedron {
 				glUseProgram(OctaRenderProgram);
 
 				glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(myTransformM));
+				glUniform1f(glGetUniformLocation(OctaRenderProgram, "param"), (GLfloat)param); //Pas the param into shader. 
 
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 
