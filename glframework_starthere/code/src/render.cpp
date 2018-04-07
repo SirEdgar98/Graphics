@@ -50,6 +50,17 @@ namespace Octahedron {
 	GLuint OctaRenderProgram;
 	GLuint myVAO; // VertexArrayObject
 }
+namespace wireOctahedron {
+
+	GLuint myShaderCompile(void);
+	void myInitCode(void);
+	void myRenderCode(double currentTime);
+	void myCleanupCode(void);
+
+	GLuint WireOctaRenderProgram;
+	GLuint myVAO; // VertexArrayObject
+}
+
 
 ////////////////
 glm::vec3 cubLaticePos[4]; 
@@ -77,6 +88,7 @@ void MyGUI()
 		ImGui::RadioButton("HonyComb", &selected, 20); 
 		ImGui::RadioButton("Ex 3", &selected, 3);
 		ImGui::RadioButton("Ex 4", &selected, 4);
+		ImGui::RadioButton("Ex 5", &selected, 5); 
 
 	}
 	// .........................
@@ -155,12 +167,14 @@ void GLinit(int width, int height) {
 
 	MyFirstShader::myInitCode();
 	Octahedron::myInitCode(); 
+	wireOctahedron::myInitCode();
 }
 
 void GLcleanup() {
 	
 	MyFirstShader::myCleanupCode();
 	Octahedron::myCleanupCode(); 
+	wireOctahedron::myCleanupCode(); 
 }
 
 void GLrender(double currentTime) {
@@ -177,6 +191,7 @@ void GLrender(double currentTime) {
 
 	MyFirstShader::myRenderCode(currentTime);
 	Octahedron::myRenderCode(currentTime);
+	wireOctahedron::myRenderCode(currentTime);
 	ImGui::Render();
 }
 
@@ -1068,7 +1083,6 @@ namespace MyFirstShader {
 			}" };
 
 
-
 		//in the geometry shader notice how gl_PrimitiveID is assigned before emitting each vertex
 
 		static const GLchar * geom_shader_source[] = {
@@ -1154,7 +1168,6 @@ namespace MyFirstShader {
 				EndPrimitive();\n\
 			}"
 		};
-
 
 
 		GLuint vertex_shader;
@@ -1645,4 +1658,244 @@ namespace Octahedron {
 		glDeleteProgram(OctaRenderProgram);
 	}
 
+}
+
+namespace wireOctahedron {
+
+	GLuint myShaderCompile() {
+		static const GLchar * vertex_shader_source[] =
+		{
+			"#version 330\n\
+		\n\
+		void main() {\n\
+		const vec4 vertices[3] = vec4[3](vec4( 0.25, -0.25, 0.5, 1.0),\n\
+									    vec4(0.25, 0.25, 0.5, 1.0),\n\
+										vec4( -0.25,  -0.25, 0.5, 1.0));\n\
+		gl_Position = vertices[gl_VertexID];\n\
+		}"
+		};
+
+		//the fragment shader considers gl_PrimitiveID:
+
+		static const GLchar * fragment_shader_source[] =
+		{
+			"#version 330\n\
+			\n\
+			out vec4 color;\n\
+			\n\
+			void main() {\n\
+			const vec4 colors[6] = vec4[6](vec4( 0.4, 0.0, .9, 1.0),\n\
+											vec4(0.25, 0.0, 0.8, 1.0),\n\
+											vec4( 0.5, 0.0, 0.8, 1.0),\n\
+											vec4(0.2, 0.0, 1.0, 1.0),\n\
+											vec4(0.5, 0.0, 1.0, 1.0),\n\
+											vec4( 0.3, 0.0, 0.5, 1.0));\n\
+			color = colors[gl_PrimitiveID ];\n\
+			}" };
+
+		static const GLchar * wire_octageom_shader_source[] = {
+			"#version 330 \n\
+			uniform mat4 octaTrans;\n\
+			uniform float param;\n\
+			layout(lines) in;\n\
+			layout(line_strip, max_vertices = 100) out;\n\
+			void main()\n\
+			{\n\
+			//HEXAGONO \n\
+			//CARA 1 \n\
+				const vec4 OctaVertices[7] = vec4[7](vec4( -1.41, 0.0, -2.83, 1.0),\n\
+													 vec4( 0.0, -1.41, -2.83, 1.0),\n\
+													 vec4( 0.0, -2.83, -1.41, 1.0),\n\
+													 vec4( -1.41, -2.83, 0.0, 1.0),\n\
+													 vec4( -2.83, -1.41, 0.0, 1.0),\n\
+												     vec4( -2.83, 0.0, -1.41, 1.0),\n\
+													 vec4( -1.41, 0.0, -2.83, 1.0));\n\
+				\n\
+				for (int i = 0; i<7; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 2 \n\
+				const vec4 OctaVertices2[7] = vec4[7](vec4( -1.41, 0.0, -2.83, 1.0),\n\
+													 vec4( -2.83, 0.0, -1.41, 1.0),\n\
+													 vec4( -2.83, 1.41, 0.0, 1.0),\n\
+													 vec4( -1.41, 2.83, 0.0, 1.0),\n\
+													 vec4( 0.0, 2.83, -1.41, 1.0),\n\
+													 vec4( 0.0, 1.41, -2.83, 1.0),\n\
+													 vec4( -1.41, 0.0, -2.83, 1.0));\n\
+				\n\
+				for (int i = 0; i<7; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices2[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 3 \n\
+				const vec4 OctaVertices3[7] = vec4[7](vec4( 1.41, 0.0, -2.83, 1.0),\n\
+													 vec4( 0.0, 1.41, -2.83, 1.0),\n\
+													 vec4( 0.0, 2.83, -1.41, 1.0),\n\
+													 vec4( 1.41, 2.83, 0.0, 1.0),\n\
+													 vec4( 2.83, 1.41, 0.0, 1.0),\n\
+													 vec4( 2.83, 0.0, -1.41, 1.0),\n\
+													 vec4( 1.41, 0.0, -2.83, 1.0));\n\
+				\n\
+				for (int i = 0; i<7; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices3[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 4 \n\
+				const vec4 OctaVertices4[7] = vec4[7](vec4( 0.0, -1.41, -2.83, 1.0),\n\
+													 vec4( 1.41, 0.0, -2.83, 1.0),\n\
+													 vec4( 2.83, 0.0, -1.41, 1.0),\n\
+													 vec4( 2.83, -1.41, 0.0, 1.0),\n\
+													 vec4( 1.41, -2.83, 0.0, 1.0),\n\
+													 vec4( 0.0, -2.83, -1.41, 1.0),\n\
+													 vec4( 0.0, -1.41, -2.83, 1.0));\n\
+				\n\
+				for (int i = 0; i<7; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices4[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 5 \n\
+				const vec4 OctaVertices5[7] = vec4[7](vec4( 1.41, -2.83, 0.0, 1.0),\n\
+													 vec4( 2.83, -1.41, 0.0, 1.0),\n\
+													 vec4(2.83, 0.0, 1.41, 1.0),\n\
+													 vec4( 1.41, 0.0, 2.83, 1.0),\n\
+													 vec4(0.0, -1.41, 2.83, 1.0), \n\
+													 vec4(0.0, -2.83, 1.41, 1.0), \n\
+													 vec4( 1.41, -2.83, 0.0, 1.0));\n\
+				\n\
+				for (int i = 0; i<7; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices5[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 6 \n\
+				const vec4 OctaVertices6[7] = vec4[7](vec4(-2.83, -1.41, 0.0, 1.0),\n\
+													 vec4( -1.41, -2.83, 0.0, 1.0),\n\
+													 vec4(0.0, -2.83, 1.41, 1.0),\n\
+													 vec4(0.0, -1.41, 2.83, 1.0),\n\
+													 vec4( -1.41, 0.0, 2.83, 1.0),\n\
+													 vec4( -2.83, 0.0, 1.41, 1.0),\n\
+													 vec4(-2.83, -1.41, 0.0, 1.0));\n\
+				\n\
+				for (int i = 0; i<7; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices6[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 7 \n\
+				const vec4 OctaVertices7[7] = vec4[7](vec4( -1.41, 2.83, 0.0, 1.0),\n\
+													 vec4( -2.83, 1.41, 0.0, 1.0),\n\
+													 vec4( -2.83, 0.0, 1.41, 1.0),\n\
+													 vec4( -1.41, 0.0, 2.83, 1.0),\n\
+													 vec4( 0.0, 1.41, 2.83, 1.0),\n\
+													 vec4( 0.0, 2.83, 1.41, 1.0),\n\
+													 vec4( -1.41, 2.83, 0.0, 1.0));\n\
+				\n\
+				for (int i = 0; i<7; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices7[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+\n\
+				//CARA 8 \n\
+				const vec4 OctaVertices8[7] = vec4[7](vec4( 2.83, 1.41, 0.0, 1.0),\n\
+													 vec4( 1.41, 2.83, 0.0, 1.0),\n\
+													 vec4( 0.0, 2.83, 1.41, 1.0),\n\
+													 vec4( 0.0, 1.41, 2.83, 1.0),\n\
+													 vec4( 1.41, 0.0, 2.83, 1.0),\n\
+													 vec4( 2.83, 0.0, 1.41, 1.0),\n\
+													 vec4( 2.83, 1.41, 0.0, 1.0));\n\
+				\n\
+				for (int i = 0; i<7; i++)\n\
+				{\n\
+					gl_Position = octaTrans*OctaVertices8[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				}"
+		};
+
+		GLuint vertex_shader;
+		GLuint fragment_shader;
+		GLuint wire_octageom_shader;
+		GLuint program;
+
+		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
+		glCompileShader(vertex_shader);
+
+		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
+		glCompileShader(fragment_shader);
+
+		wire_octageom_shader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(wire_octageom_shader, 1, wire_octageom_shader_source, NULL);
+		glCompileShader(wire_octageom_shader);
+
+		program = glCreateProgram();
+		glAttachShader(program, vertex_shader);
+		glAttachShader(program, fragment_shader);
+		glAttachShader(program, wire_octageom_shader);
+		glLinkProgram(program);
+
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+		glDeleteShader(wire_octageom_shader);
+
+		return program;
+
+
+	}
+	void myInitCode() {
+		WireOctaRenderProgram = myShaderCompile();
+		glCreateVertexArrays(1, &myVAO);
+		glBindVertexArray(myVAO);
+	}
+	void myRenderCode(double currentTime) {
+		if (selected == 5) {
+			glm::mat4 wire_OctaCenter = { 1.0, 0.0, 0.0, 0.0,
+				0.0, 1.0, 0.0, 0.0,
+				0.0, 0.0, 1.0, 0.0,
+				0.0, 0.0, 0.0, 1.0 };
+
+			wire_OctaCenter = RV::_MVP * wire_OctaCenter;
+
+			glUseProgram(WireOctaRenderProgram);
+
+			glUniformMatrix4fv(glGetUniformLocation(WireOctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(wire_OctaCenter));
+
+			glDrawArrays(GL_LINES, 0, 3);
+		}
+	}
+	void myCleanupCode() {
+		glDeleteVertexArrays(1, &myVAO);
+		glDeleteProgram(WireOctaRenderProgram);
+	}
+
+	
 }
