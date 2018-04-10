@@ -72,6 +72,12 @@ float fallingSpeed = 0.01;
 float prevY[numSeeds];
 float octaprevY[numSeeds]; 
 glm::mat4 CameraMat;
+float param = 0; // Parameter for transformation between cube and octahedron between 0 and 1
+bool paramInc = true;
+float lastTime;
+float animTime = 3.0;
+float animSpeed = 0.02;
+
 
 static int selected = 1; 
 void MyGUI()
@@ -1320,16 +1326,16 @@ namespace Octahedron {
 			out vec4 color;\n\
 			\n\
 			void main() {\n\
-			const vec4 colors[6] = vec4[6](vec4( 0.4, 0.0, .9, 1.0),\n\
-											vec4(0.25, 0.0, 0.8, 1.0),\n\
+			const vec4 colors[6] = vec4[6]( vec4( 0.4, 0.0, .9, 1.0),\n\
+											vec4( 0.25, 0.0, 0.8, 1.0),\n\
 											vec4( 0.5, 0.0, 0.8, 1.0),\n\
-											vec4(0.2, 0.0, 1.0, 1.0),\n\
-											vec4(0.5, 0.0, 1.0, 1.0),\n\
+											vec4( 0.2, 0.0, 1.0, 1.0),\n\
+											vec4( 0.5, 0.0, 1.0, 1.0),\n\
 											vec4( 0.3, 0.0, 0.5, 1.0));\n\
 			color = colors[gl_PrimitiveID ];\n\
 			}" };
 
-		static const GLchar * octageom_shader_source[] = {
+		static  GLchar * octageom_shader_source[] = {
 			"#version 330 \n\
 			uniform mat4 octaTrans;\n\
 			uniform float param;\n\
@@ -1339,12 +1345,12 @@ namespace Octahedron {
 			{\n\
 			//HEXAGONO \n\
 			//CARA 1 \n\
-				const vec4 OctaVertices[6] = vec4[6](vec4( -1.41, 0.0, -2.83, 1.0),\n\
-													 vec4( -2.83, 0.0, -1.41, 1.0),\n\
-													 vec4( 0.0, 1.41, -2.83, 1.0),\n\
-													 vec4( -2.83, 1.41, 0.0, 1.0),\n\
-													 vec4( 0.0, 2.83, -1.41, 1.0),\n\
-													 vec4( -1.41, 2.83, 0.0, 1.0));\n\
+				vec4 OctaVertices[6] = vec4[6](		 vec4( -1.41,  1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
+													 vec4( -2.83 +  1.41 * param, 1.41 * param, -1.41, 1.0),\n\
+													 vec4( -1.41 * param, 1.41, -2.83 + 1.41 * param, 1.0),\n\
+													 vec4( -2.83 + 1.41 * param, 1.41, -1.41 * param, 1.0),\n\
+													 vec4( -1.41 * param, 2.83 - 1.41 * param, -1.41, 1.0),\n\
+													 vec4( -1.41, 2.83 - 1.41 * param, -1.41 * param, 1.0));\n\
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
@@ -1355,12 +1361,12 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 2 \n\
-				const vec4 OctaVertices2[6] = vec4[6](vec4( 0.0, -1.41, -2.83, 1.0),\n\
-													 vec4( 0.0, -2.83, -1.41, 1.0),\n\
-													 vec4( -1.41, 0.0, -2.83, 1.0),\n\
-													 vec4( -1.41, -2.83, 0.0, 1.0),\n\
-													 vec4( -2.83, 0.0, -1.41, 1.0),\n\
-													 vec4( -2.83, -1.41, 0.0, 1.0));\n\
+				 vec4 OctaVertices2[6] = vec4[6](	 vec4( - 1.41 * param, -1.41, -2.83 +  1.41 * param, 1.0),\n\
+													 vec4( - 1.41 * param, -2.83 +  1.41 * param, -1.41, 1.0),\n\
+													 vec4( -1.41, -  1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
+													 vec4( -1.41, -2.83 +  1.41 * param, -  1.41 * param, 1.0),\n\
+													 vec4( -2.83 + 1.41 * param, -  1.41 * param, -1.41, 1.0),\n\
+													 vec4( -2.83 + 1.41 * param, -1.41, -  1.41 * param, 1.0));\n\
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
@@ -1371,12 +1377,12 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 3 \n\
-				const vec4 OctaVertices3[6] = vec4[6](vec4( 1.41, 0.0, -2.83, 1.0),\n\
-													 vec4( 2.83, 0.0, -1.41, 1.0),\n\
-													 vec4( 0.0, -1.41, -2.83, 1.0),\n\
-													 vec4( 2.83, -1.41, 0.0, 1.0),\n\
-													 vec4( 0.0, -2.83, -1.41, 1.0),\n\
-													 vec4( 1.41, -2.83, 0.0, 1.0));\n\
+				 vec4 OctaVertices3[6] = vec4[6](	 vec4( 1.41, -1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
+													 vec4( 2.83 -  1.41 * param,- 1.41 * param, -1.41, 1.0),\n\
+													 vec4( 1.41 * param, -1.41, -2.83 + 1.41 * param, 1.0),\n\
+													 vec4( 2.83 - 1.41 * param, -1.41, - 1.41 * param, 1.0),\n\
+													 vec4( 1.41 * param, -2.83 + 1.41 * param, -1.41, 1.0),\n\
+													 vec4( 1.41, -2.83 + 1.41 * param, - 1.41 * param, 1.0));\n\
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
@@ -1387,12 +1393,12 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 4 \n\
-				const vec4 OctaVertices4[6] = vec4[6](vec4( 0.0, 1.41, -2.83, 1.0),\n\
-													 vec4( 0.0, 2.83, -1.41, 1.0),\n\
-													 vec4( 1.41, 0.0, -2.83, 1.0),\n\
-													 vec4( 1.41, 2.83, 0.0, 1.0),\n\
-													 vec4( 2.83, 0.0, -1.41, 1.0),\n\
-													 vec4( 2.83, 1.41, 0.0, 1.0));\n\
+				 vec4 OctaVertices4[6] = vec4[6](	 vec4( 1.41 * param, 1.41, -2.83 +1.41 * param, 1.0),\n\
+													 vec4( 1.41 * param, 2.83 - 1.41 * param, -1.41, 1.0),\n\
+													 vec4( 1.41, 1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
+													 vec4( 1.41, 2.83 - 1.41 * param, - 1.41 * param, 1.0),\n\
+													 vec4( 2.83 - 1.41 * param, 1.41 * param, -1.41, 1.0),\n\
+													 vec4( 2.83 - 1.41 * param, 1.41, -1.41 * param, 1.0));\n\
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
@@ -1403,12 +1409,12 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 5 \n\
-				const vec4 OctaVertices5[6] = vec4[6](vec4( -2.83, 1.41, 0.0, 1.0),\n\
-													 vec4( -2.83, 0.0, 1.41, 1.0),\n\
-													 vec4(-1.41, 2.83, 0.0, 1.0),\n\
-													 vec4( -1.41, 0.0, 2.83, 1.0),\n\
-													 vec4(0.0, 2.83, 1.41, 1.0), \n\
-													 vec4( 0.0, 1.41, 2.83, 1.0));\n\
+				 vec4 OctaVertices5[6] = vec4[6](	 vec4( -2.83 + 1.41 * param, 1.41, 1.41 * param, 1.0),\n\
+													 vec4( -2.83 + 1.41 * param,1.41 * param, 1.41, 1.0),\n\
+													 vec4( -1.41, 2.83 - 1.41 * param, 1.41 * param, 1.0),\n\
+													 vec4( -1.41, 1.41 * param, 2.83 - 1.41 * param, 1.0),\n\
+													 vec4( - 1.41 * param, 2.83 - 1.41 * param, 1.41, 1.0), \n\
+													 vec4( - 1.41 * param, 1.41, 2.83 - 1.41 * param, 1.0));\n\
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
@@ -1419,12 +1425,12 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 6 \n\
-				const vec4 OctaVertices6[6] = vec4[6](vec4( -1.41, -2.83, 0.0, 1.0),\n\
-													 vec4( 0.0, -2.83, 1.41, 1.0),\n\
-													 vec4( -2.83, -1.41, 0.0, 1.0),\n\
-													 vec4( 0.0, -1.41, 2.83, 1.0),\n\
-													 vec4( -2.83, 0.0, 1.41, 1.0),\n\
-													 vec4( -1.41, 0.0, 2.83, 1.0));\n\
+				 vec4 OctaVertices6[6] = vec4[6](vec4( -1.41, -2.83 + 1.41 * param, 1.41 * param, 1.0),\n\
+													 vec4( - 1.41 * param, -2.83 + 1.41 * param, 1.41, 1.0),\n\
+													 vec4( -2.83 + 1.41 * param, -1.41, 1.41 * param, 1.0),\n\
+													 vec4( - 1.41 * param, -1.41, 2.83 - 1.41 * param, 1.0),\n\
+													 vec4( -2.83 + 1.41 * param,- 1.41 * param, 1.41, 1.0),\n\
+													 vec4( -1.41, - 1.41 * param, 2.83 - 1.41 * param, 1.0));\n\
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
@@ -1435,12 +1441,12 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 7 \n\
-				const vec4 OctaVertices7[6] = vec4[6](vec4( 2.83, -1.41, 0.0, 1.0),\n\
-													 vec4( 2.83, 0.0, 1.41, 1.0),\n\
-													 vec4( 1.41, -2.83, 0.0, 1.0),\n\
-													 vec4( 1.41, 0.0, 2.83, 1.0),\n\
-													 vec4( 0.0, -2.83, 1.41, 1.0),\n\
-													 vec4( 0.0, -1.41, 2.83, 1.0));\n\
+				 vec4 OctaVertices7[6] = vec4[6](vec4( 2.83 - 1.41 * param, -1.41, 1.41 * param, 1.0),\n\
+													 vec4( 2.83 - 1.41 * param,- 1.41 * param, 1.41, 1.0),\n\
+													 vec4( 1.41, -2.83 + 1.41 * param, 1.41 * param, 1.0),\n\
+													 vec4( 1.41, - 1.41 * param, 2.83 - 1.41 * param, 1.0),\n\
+													 vec4( 1.41 * param, -2.83 + 1.41 * param, 1.41, 1.0),\n\
+													 vec4( 1.41 * param, -1.41, 2.83 - 1.41 * param, 1.0));\n\
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
@@ -1451,12 +1457,12 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 8 \n\
-				const vec4 OctaVertices8[6] = vec4[6](vec4( 1.41, 2.83, 0.0, 1.0),\n\
-													 vec4( 0.0, 2.83, 1.41, 1.0),\n\
-													 vec4( 2.83, 1.41, 0.0, 1.0),\n\
-													 vec4( 0.0, 1.41, 2.83, 1.0),\n\
-													 vec4( 2.83, 0.0, 1.41, 1.0),\n\
-													 vec4( 1.41, 0.0, 2.83, 1.0));\n\
+				 vec4 OctaVertices8[6] = vec4[6](vec4( 1.41, 2.83 - 1.41 * param, 1.41 * param, 1.0),\n\
+													 vec4( 1.41 * param, 2.83 - 1.41 * param, 1.41, 1.0),\n\
+													 vec4( 2.83 - 1.41 * param, 1.41, 1.41 * param, 1.0),\n\
+													 vec4( 1.41 * param, 1.41, 2.83 - 1.41 * param, 1.0),\n\
+													 vec4( 2.83 - 1.41 * param, 1.41 * param, 1.41, 1.0),\n\
+													 vec4( 1.41, 1.41 * param, 2.83 - 1.41 * param, 1.0));\n\
 				\n\
 				for (int i = 0; i<6; i++)\n\
 				{\n\
@@ -1468,11 +1474,15 @@ namespace Octahedron {
 \n\
 				//CUADRADOS\n\
 				//CARA 1\n\
-				const vec4 QuadVertices[4]= vec4[4](vec4(2.83, 0.0, -1.41, 1.0),\n\
-										vec4(2.83, 1.41, 0.0, 1.0),\n\
-										vec4(2.83, -1.41, 0.0, 1.0),\n\
-										vec4(2.83, 0.0, 1.41, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
+				 vec4 QuadVertices[8]= vec4[8]( vec4(2.83 - 1.41 * param ,-1.41 * param, -1.41, 1.0),\n\
+												vec4(2.83 - 1.41 * param, 1.41 * param, -1.41, 1.0),\n\
+												vec4(2.83 - 1.41 * param, -1.41, -1.41 * param, 1.0),\n\
+												vec4(2.83 - 1.41 * param, 1.41, -1.41 * param, 1.0),\n\
+												vec4(2.83 - 1.41 * param, -1.41, 1.41 * param, 1.0),\n\
+												vec4(2.83 - 1.41 * param, 1.41, 1.41 * param, 1.0),\n\
+												vec4(2.83 - 1.41 * param, -1.41 * param, 1.41, 1.0),\n\
+												vec4(2.83 - 1.41 * param, 1.41 * param, 1.41, 1.0));\n\
+				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 1;\n\
@@ -1481,11 +1491,15 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 2\n\
-				const vec4 QuadVertices2[4]= vec4[4](vec4(0.0, 2.83, -1.41, 1.0),\n\
-										vec4(-1.41, 2.83, 0.0, 1.0),\n\
-										vec4(1.41, 2.83, 0.0, 1.0),\n\
-										vec4(0.0, 2.83, 1.41, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
+				 vec4 QuadVertices2[8]= vec4[8](vec4(1.41 * param, 2.83 - 1.41 * param, -1.41, 1.0),\n\
+												vec4(-1.41 * param, 2.83 - 1.41 * param, -1.41, 1.0),\n\
+												vec4(1.41, 2.83 - 1.41 * param, -1.41 * param, 1.0),\n\
+												vec4(-1.41, 2.83 - 1.41 * param, -1.41 * param, 1.0),\n\
+												vec4(1.41, 2.83 - 1.41 * param, 1.41 * param, 1.0),\n\
+												vec4(-1.41, 2.83 - 1.41 * param, 1.41 * param, 1.0),\n\
+												vec4(1.41 * param, 2.83 - 1.41 * param, 1.41, 1.0),\n\
+												vec4(-1.41 * param, 2.83 - 1.41 * param, 1.41, 1.0));\n\
+				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices2[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 1;\n\
@@ -1494,11 +1508,15 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 3\n\
-				const vec4 QuadVertices3[4]= vec4[4](vec4(-2.83, 0.0, -1.41, 1.0),\n\
-										vec4(-2.83, -1.41, 0.0, 1.0),\n\
-										vec4(-2.83, 1.41, 0.0, 1.0),\n\
-										vec4(-2.83, 0.0, 1.41, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
+				 vec4 QuadVertices3[8]= vec4[8](vec4(-2.83 + 1.41 * param, 1.41 * param, -1.41, 1.0),\n\
+												vec4(-2.83 + 1.41 * param, -1.41 * param, -1.41, 1.0), \n\
+												vec4(-2.83 + 1.41 * param, 1.41,  -1.41 * param, 1.0),\n\
+												vec4(-2.83 + 1.41 * param, -1.41, -1.41 * param, 1.0),\n\
+												vec4(-2.83 + 1.41 * param, 1.41,  1.41 * param, 1.0),\n\
+												vec4(-2.83 + 1.41 * param, -1.41, 1.41 * param, 1.0),\n\
+												vec4(-2.83 + 1.41 * param, 1.41 * param, 1.41, 1.0),\n\
+												vec4(-2.83 + 1.41 * param, -1.41 * param, 1.41, 1.0));\n\
+				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices3[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 1;\n\
@@ -1507,11 +1525,15 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 4\n\
-				const vec4 QuadVertices4[4]= vec4[4](vec4(0.0, -2.83, -1.41, 1.0),\n\
-										vec4(1.41, -2.83, 0.0, 1.0),\n\
-										vec4(-1.41, -2.83, 0.0, 1.0),\n\
-										vec4(0.0, -2.83, 1.41, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
+				 vec4 QuadVertices4[8]= vec4[8](vec4( -1.41 * param, -2.83 + 1.41 * param, -1.41, 1.0),\n\
+												vec4( 1.41 * param, -2.83 + 1.41 * param, -1.41, 1.0),\n\
+												vec4( -1.41, -2.83 + 1.41 * param,  -1.41 * param, 1.0),\n\
+												vec4( 1.41, -2.83 + 1.41 * param, - 1.41 * param, 1.0),\n\
+												vec4( -1.41, -2.83 + 1.41 * param, 1.41 * param, 1.0),\n\
+												vec4( 1.41, -2.83 + 1.41 * param,  1.41 * param, 1.0),\n\
+												vec4( -1.41 * param, -2.83 + 1.41 * param, 1.41, 1.0),\n\
+												vec4( 1.41 * param, -2.83 + 1.41 * param, 1.41, 1.0));\n\
+				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices4[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 1;\n\
@@ -1520,11 +1542,15 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 5\n\
-				const vec4 QuadVertices5[4]= vec4[4](vec4(1.41, 0.0, 2.83, 1.0),\n\
-										vec4(0.0, 1.41, 2.83, 1.0),\n\
-										vec4(0.0, -1.41, 2.83, 1.0),\n\
-										vec4(-1.41, 0.0, 2.83, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
+				 vec4 QuadVertices5[8]= vec4[8](vec4(1.41, -1.41 * param, 2.83 -1.41 * param, 1.0),\n\
+												vec4(1.41, 1.41 * param, 2.83 -1.41 * param, 1.0),\n\
+												vec4(1.41 * param, -1.41, 2.83 -1.41 * param, 1.0),\n\
+												vec4(1.41 * param, 1.41, 2.83 -1.41 * param, 1.0),\n\
+												vec4(-1.41 * param, -1.41, 2.83 -1.41 * param, 1.0), \n\
+												vec4(-1.41 * param, 1.41, 2.83 -1.41 * param, 1.0), \n\
+												vec4(-1.41, -1.41 * param, 2.83 -1.41 * param, 1.0), \n\
+												vec4(-1.41, 1.41 * param, 2.83 -1.41 * param, 1.0));\n\
+				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices5[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 1;\n\
@@ -1533,11 +1559,15 @@ namespace Octahedron {
 				EndPrimitive();\n\
 \n\
 				//CARA 6\n\
-				const vec4 QuadVertices6[4]= vec4[4](vec4(-1.41, 0.0, -2.83, 1.0),\n\
-										vec4(0.0, 1.41, -2.83, 1.0),\n\
-										vec4(0.0, -1.41, -2.83, 1.0),\n\
-										vec4(1.41, 0.0, -2.83, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
+				 vec4 QuadVertices6[8]= vec4[8](vec4(-1.41, -1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
+												vec4(-1.41, 1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
+												vec4(-1.41 * param, -1.41, -2.83 + 1.41 * param, 1.0), \n\
+												vec4(-1.41 * param, 1.41, -2.83 + 1.41 * param, 1.0),\n\
+												vec4(1.41 * param, -1.41, -2.83 + 1.41 * param, 1.0),\n\
+												vec4(1.41 * param, 1.41, -2.83 + 1.41 * param, 1.0), \n\
+												vec4(1.41, -1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
+												vec4(1.41, 1.41 * param, -2.83 + 1.41 * param, 1.0)); \n\
+				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices6[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 1;\n\
@@ -1602,7 +1632,21 @@ namespace Octahedron {
 	void myRenderCode(double currentTime)
 	{
 		glm::mat4 OctaSelfRotation;
-		float param = 0; // Parameter for transformation between cube and octahedron between 0 and 1
+
+		
+		if (currentTime >= lastTime) {
+			lastTime = currentTime + animTime;
+			if (paramInc) paramInc = false; 
+			else paramInc = true;
+		
+
+		}
+		if (param >= 1.0)param = 1.0;
+		if (param <= 0.0)param = 0.0;
+		if (paramInc)param += 0.02; else param -= 0.02;
+
+
+
 		if (selected == 4) {
 			OctaSelfRotation = { 1.0, 0.0, 0.0, 0.f,
 				0.0, cos(currentTime), -sin(currentTime), 0.f,
@@ -1626,8 +1670,9 @@ namespace Octahedron {
 				glUseProgram(OctaRenderProgram);
 
 				glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(myTransformM));
-				glUniform1f(glGetUniformLocation(OctaRenderProgram, "param"), (GLfloat)param); //Pas the param into shader. 
-
+				glUniform1f(glGetUniformLocation(OctaRenderProgram, "param"), param); //Pass the param into shader. 
+			
+				
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 
 			}
@@ -1648,7 +1693,7 @@ namespace Octahedron {
 				glUseProgram(OctaRenderProgram);
 
 				glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(OctaCenter));
-
+				glUniform1f(glGetUniformLocation(OctaRenderProgram, "param"), param); //Pass the param into shader. 
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 			}
 		}
