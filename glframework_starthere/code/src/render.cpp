@@ -1340,7 +1340,7 @@ namespace Octahedron {
 			uniform mat4 octaTrans;\n\
 			uniform float param;\n\
 			layout(triangles) in;\n\
-			layout(triangle_strip, max_vertices = 100) out;\n\
+			layout(triangle_strip, max_vertices = 200) out;\n\
 			void main()\n\
 			{\n\
 			//HEXAGONO \n\
@@ -1570,6 +1570,151 @@ namespace Octahedron {
 				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices6[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARAS TRANSICIÓN\n\
+				//CARA 1\n\
+								 vec4 QuadVerticesT1[4]= vec4[4](vec4(-1.41 * param, 2.83 - 1.41 * param, -1.41, 1.0),\n\
+															 	 vec4(1.41 * param, 2.83 - 1.41 * param, -1.41, 1.0),\n\
+																 vec4(-1.41 * param, 1.41 , -2.83 + 1.41 * param, 1.0),\n\
+												   				 vec4(1.41 * param, 1.41 , -2.83 + 1.41 * param, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT1[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 2\n\
+								 vec4 QuadVerticesT2[4]= vec4[4](vec4(1.41 * param, 2.83 - 1.41 * param, 1.41, 1.0),\n\
+															 	 vec4(-1.41 * param, 2.83 - 1.41 * param, 1.41, 1.0),\n\
+																 vec4(1.41 * param, 1.41 , 2.83 - 1.41 * param, 1.0),\n\
+												   				 vec4(-1.41 * param, 1.41 , 2.83 - 1.41 * param, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT2[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 3\n\
+								 vec4 QuadVerticesT3[4]= vec4[4](vec4( -1.41, 2.83 - 1.41 * param, 1.41 * param, 1.0),\n\
+															 	 vec4(  -1.41,2.83 - 1.41 * param, -1.41 * param, 1.0),\n\
+																 vec4(-2.83 + 1.41 * param, 1.41 ,1.41 * param,  1.0),\n\
+												   				 vec4( -2.83 + 1.41 * param, 1.41 ,-1.41 * param, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT3[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 4\n\
+								 vec4 QuadVerticesT4[4]= vec4[4](vec4(1.41, 2.83 - 1.41 * param, -1.41 * param, 1.0),\n\
+															 	 vec4(1.41, 2.83 - 1.41 * param, 1.41 * param, 1.0),\n\
+																 vec4( 2.83 - 1.41 * param, 1.41 ,-1.41 * param, 1.0),\n\
+												   				 vec4( 2.83 - 1.41 * param, 1.41 ,1.41 * param,  1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT4[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 5\n\
+								 vec4 QuadVerticesT5[4]= vec4[4](vec4(1.41 * param, -2.83 + 1.41 * param, -1.41, 1.0),\n\
+															 	 vec4(-1.41 * param, -2.83 + 1.41 * param, -1.41, 1.0),\n\
+																 vec4(1.41 * param, -1.41 , -2.83 + 1.41 * param, 1.0),\n\
+												   				 vec4(-1.41 * param, -1.41 , -2.83 + 1.41 * param, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT5[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 6\n\
+								 vec4 QuadVerticesT6[4]= vec4[4](vec4(-1.41 * param, -2.83 + 1.41 * param, 1.41, 1.0),\n\
+															 	 vec4(1.41 * param, -2.83 + 1.41 * param, 1.41, 1.0),\n\
+																 vec4(-1.41 * param, -1.41 , 2.83 - 1.41 * param, 1.0),\n\
+												   				 vec4(1.41 * param, -1.41 , 2.83 - 1.41 * param, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT6[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 7\n\
+								 vec4 QuadVerticesT7[4]= vec4[4](vec4( -1.41, -2.83 + 1.41 * param, -1.41 * param, 1.0),\n\
+															 	 vec4(  -1.41,-2.83 + 1.41 * param, 1.41 * param, 1.0),\n\
+																 vec4(-2.83 + 1.41 * param, -1.41 ,-1.41 * param,  1.0),\n\
+												   				 vec4( -2.83 + 1.41 * param, -1.41 ,1.41 * param, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT7[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 8\n\
+								 vec4 QuadVerticesT8[4]= vec4[4](vec4(1.41,- 2.83 + 1.41 * param, 1.41 * param, 1.0),\n\
+															 	 vec4(1.41,- 2.83 + 1.41 * param, -1.41 * param, 1.0),\n\
+																 vec4( 2.83 - 1.41 * param, -1.41 ,1.41 * param, 1.0),\n\
+												   				 vec4( 2.83 - 1.41 * param, -1.41 ,-1.41 * param,  1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT8[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 9\n\
+								 vec4 QuadVerticesT9[4]= vec4[4](vec4(  -1.41,-1.41 * param,2.83 - 1.41 * param, 1.0),\n\
+															  	  vec4(  -1.41,1.41 * param,2.83 - 1.41 * param, 1.0),\n\
+															 	  vec4( -2.83 + 1.41 * param ,-1.41 * param,1.41 ,  1.0),\n\
+												   			 	  vec4(  -2.83 + 1.41 * param,1.41 * param,1.41 ,   1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT9[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 10\n\
+								 vec4 QuadVerticesT10[4]= vec4[4](vec4(  1.41,-1.41 * param,-2.83 + 1.41 * param, 1.0),\n\
+															  	  vec4(  1.41,1.41 * param,-2.83 + 1.41 * param, 1.0),\n\
+															 	  vec4( 2.83 - 1.41 * param ,-1.41 * param,-1.41 ,  1.0),\n\
+												   			 	  vec4(  2.83 - 1.41 * param,1.41 * param,-1.41 ,   1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT10[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 11\n\
+								 vec4 QuadVerticesT11[4]= vec4[4](vec4(  -1.41,1.41 * param,-2.83 + 1.41 * param, 1.0),\n\
+															  	  vec4(  -1.41,-1.41 * param,-2.83 + 1.41 * param, 1.0),\n\
+															 	  vec4( -2.83 + 1.41 * param ,1.41 * param,-1.41 ,  1.0),\n\
+												   			 	  vec4(  -2.83 + 1.41 * param,-1.41 * param,-1.41 ,   1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT11[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 12\n\
+								 vec4 QuadVerticesT12[4]= vec4[4](vec4(  1.41,1.41 * param,2.83 - 1.41 * param, 1.0),\n\
+															  	  vec4(  1.41,-1.41 * param,2.83 - 1.41 * param, 1.0),\n\
+															 	  vec4( 2.83 - 1.41 * param ,1.41 * param,1.41 ,  1.0),\n\
+												   			 	  vec4(  2.83 - 1.41 * param,-1.41 * param,1.41 ,   1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = octaTrans*QuadVerticesT12[i]+gl_in[0].gl_Position;\n\
 				gl_PrimitiveID = 1;\n\
 					EmitVertex();\n\
 				}\n\
