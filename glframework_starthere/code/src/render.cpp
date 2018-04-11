@@ -77,6 +77,7 @@ bool paramInc = true;
 float lastTime;
 float animTime = 3.0;
 float animSpeed = 0.02;
+bool transition = false;
 
 
 static int selected = 1; 
@@ -95,6 +96,7 @@ void MyGUI()
 		ImGui::RadioButton("Ex 3", &selected, 3);
 		ImGui::RadioButton("Ex 4", &selected, 4);
 		ImGui::RadioButton("Ex 5", &selected, 5); 
+		ImGui::RadioButton("Ex 6", &selected, 6);
 
 	}
 	// .........................
@@ -164,8 +166,8 @@ void GLinit(int width, int height) {
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-
-	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
+	float scale = 50;
+	RV::_projection = glm::ortho(-(float)width / scale, (float)width / scale, -(float)height / scale, (float)width / scale, RV::zNear, RV::zFar);
 
 	// Setup shaders & geometry
 	
@@ -1079,13 +1081,13 @@ namespace MyFirstShader {
 			out vec4 color;\n\
 			\n\
 			void main() {\n\
-			const vec4 colors[6] = vec4[6](vec4( 0.4, 0.0, .9, 1.0),\n\
+			const vec4 colors[6] = vec4[6]( vec4( 0.4, 0.0, .9, 1.0),\n\
 											vec4(0.25, 0.0, 0.8, 1.0),\n\
 											vec4( 0.5, 0.0, 0.8, 1.0),\n\
 											vec4(0.2, 0.0, 1.0, 1.0),\n\
 											vec4(0.5, 0.0, 1.0, 1.0),\n\
 											vec4( 0.3, 0.0, 0.5, 1.0));\n\
-			color = colors[gl_PrimitiveID ];\n\
+			color = colors[gl_PrimitiveID];\n\
 			}" };
 
 
@@ -1345,7 +1347,7 @@ namespace Octahedron {
 			{\n\
 			//HEXAGONO \n\
 			//CARA 1 \n\
-				vec4 OctaVertices[6] = vec4[6](		 vec4( -1.41,  1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
+				 vec4 OctaVertices[6] = vec4[6](		 vec4( -1.41,  1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
 													 vec4( -2.83 +  1.41 * param, 1.41 * param, -1.41, 1.0),\n\
 													 vec4( -1.41 * param, 1.41, -2.83 + 1.41 * param, 1.0),\n\
 													 vec4( -2.83 + 1.41 * param, 1.41, -1.41 * param, 1.0),\n\
@@ -1754,6 +1756,7 @@ namespace Octahedron {
 
 	}
 
+	float zcoords[100];
 	void myInitCode(void) {
 		OctaRenderProgram = myShaderCompile();
 		glCreateVertexArrays(1, &myVAO);
@@ -1772,23 +1775,28 @@ namespace Octahedron {
 		octaLaticePos[1] = { -2.81,0.0,0.0 }; // Octa Right
 		octaLaticePos[2] = { 0.0,2.81,2.81 };  // Octa Up
 		octaLaticePos[3] = { 0.0,-2.81,2.81 }; // Octa Down
+
+		for (int i = 0; i < 100; i++)
+			zcoords[i] = -2.81 *  static_cast<float>( rand() % 10);
 	}
 
-	void myRenderCode(double currentTime)
-	{
+	void myRenderCode(double currentTime) {
 		glm::mat4 OctaSelfRotation;
-
 		
-		if (currentTime >= lastTime) {
-			lastTime = currentTime + animTime;
-			if (paramInc) paramInc = false; 
-			else paramInc = true;
 		
 
+		if (transition) {
+			if (currentTime >= lastTime) {
+				lastTime = currentTime + animTime;
+				if (paramInc) paramInc = false;
+				else paramInc = true;
+			}
+			if (paramInc)param += animSpeed; else param -= animSpeed;
+
+			if (param >= 1.0)param = 1.0;
+			if (param <= 0.0)param = 0.0;
 		}
-		if (param >= 1.0)param = 1.0;
-		if (param <= 0.0)param = 0.0;
-		if (paramInc)param += 0.02; else param -= 0.02;
+
 
 
 
@@ -1804,10 +1812,10 @@ namespace Octahedron {
 					0.0 ,0.0, 1.0, 0.0,   //Modificar por numero para que caiga
 					octaSeeds[i].x,octaprevY[i],octaSeeds[i].z,1.0 };
 
-					if (octaprevY[i] < -1.0)
-						octaprevY[i] = 2.0;
+				if (octaprevY[i] < -1.0)
+					octaprevY[i] = 2.0;
 
-					octaprevY[i] -= fallingSpeed;
+				octaprevY[i] -= fallingSpeed;
 
 
 				glm::mat4 myTransformM = RV::_MVP * OctaRand  * OctaSelfRotation;
@@ -1816,8 +1824,8 @@ namespace Octahedron {
 
 				glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(myTransformM));
 				glUniform1f(glGetUniformLocation(OctaRenderProgram, "param"), param); //Pass the param into shader. 
-			
-				
+
+
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 
 			}
@@ -1842,7 +1850,38 @@ namespace Octahedron {
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 			}
 		}
+
+
+
+		if (selected == 6) {
+
+			for (int i = 0; i < 10; i++) {
+				for (int j = 0; j < 10; j++) {
+					/*glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
+						0.0, 1.0, 0.0, 0.0,
+						0.0, 0.0, 1.0, 0.0,
+						2.81 * i, 2.81 * j, -abs(2.81 * static_cast<float>((i + j) % 2)) ,1.0 };*/
+
+
+					glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
+						0.0, 1.0, 0.0, 0.0,
+						0.0, 0.0, 1.0, 0.0,
+						2.81 * i, 2.81 * j, zcoords[i + (10 * j)] ,1.0 };
+
+					OctaCenter = RV::_MVP * OctaCenter;
+
+
+					glUseProgram(OctaRenderProgram);
+
+					glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(OctaCenter));
+					glUniform1f(glGetUniformLocation(OctaRenderProgram, "param"), param); //Pass the param into shader. 
+					glDrawArrays(GL_TRIANGLES, 0, 3);
+
+				}
+			}
+		}
 	}
+
 	void myCleanupCode(void) {
 		glDeleteVertexArrays(1, &myVAO);
 		glDeleteProgram(OctaRenderProgram);
