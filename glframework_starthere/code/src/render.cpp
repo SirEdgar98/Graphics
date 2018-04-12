@@ -1334,10 +1334,32 @@ namespace Octahedron {
 			uniform int aligned;\n\
 			\n\
 			void main() {\n\
-			vec4 colors[26]; \n\
-			for(int i = 0; i < 25; i++){\n\
-			colors[i] = vec4(((i / 25) * 66.0) / 255.0, (20 + (i * 8))/ 255.0, ((i / 25) *  32.0 )/ 255.0, 1.0); \n\
-			}\n\
+			const vec4 colors[26] = vec4[26]( vec4( 0.0/255.0, 92.0/255.0, 50.0/255.0, 1.0),\n\
+											vec4( 0.0/255.0, 232.0/255.0, 127.0/255.0, 1.0),\n\
+											vec4( 0.0/255.0, 156.0/255.0, 85.0/255.0, 1.0),\n\
+											vec4( 0.0/255.0, 168.0/255.0, 92.0/255.0, 1.0),\n\
+											vec4( 0.0/255.0, 130.0/255.0, 71.0/255.0, 1.0),\n\
+											vec4( 0.0/255.0, 92.0/255.0, 21.0/255.0, 1.0),\n\
+											vec4( 0.0/255.0, 232.0/255.0, 52.0/255.0, 1.0),\n\
+											vec4( 0.0/255.0, 156.0/255.0, 35.0/255.0, 1.0),\n\
+											vec4( 0.0/255.0, 168.0/255.0, 38.0/255.0, 1.0),\n\
+											vec4( 0.0/255.0, 130.0/255.0, 29.0/255.0, 1.0),\n\
+											vec4( 27.0/255.0, 92.0/255.0, 0.0/255.0, 1.0),\n\
+											vec4( 67.0/255.0, 232.0/255.0, 0.0/255.0, 1.0),\n\
+											vec4( 45.0/255.0, 156.0/255.0, 0.0/255.0, 1.0),\n\
+											vec4( 49.0/255.0, 168.0/255.0, 0.0/255.0, 1.0),\n\
+											vec4( 38.0/255.0, 130.0/255.0, 0.0/255.0, 1.0),\n\
+											vec4( 30.0/255.0, 92.0/255.0, 23.0/255.0, 1.0),\n\
+											vec4( 76.0/255.0, 232.0/255.0, 58.0/255.0, 1.0),\n\
+											vec4( 51.0/255.0, 156.0/255.0, 39.0/255.0, 1.0),\n\
+											vec4( 55/255.0, 168.0/255.0, 42.0/255.0, 1.0),\n\
+											vec4( 43/255.0, 130.0/255.0, 32.0/255.0, 1.0),\n\
+											vec4( 47.0/255.0, 92.0/255.0, 45.0/255.0, 1.0),\n\
+											vec4(118.0/255.0, 232.0/255.0, 115.0/255.0, 1.0),\n\
+											vec4( 79.0/255.0, 156.0/255.0, 77.0/255.0, 1.0),\n\
+											vec4( 86.0/255.0, 168.0/255.0, 83.0/255.0, 1.0),\n\
+											vec4( 66.0/255.0, 130.0/255.0, 64.0/255.0, 1.0),\n\
+											vec4( 255.0/255.0, 255.0/255.0, 255.0/255.0, 1.0));\n\
 			color = colors[gl_PrimitiveID];\n\
 			}" 
 		};
@@ -1362,7 +1384,7 @@ namespace Octahedron {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 25;\n\
+					gl_PrimitiveID = 3;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1378,7 +1400,7 @@ namespace Octahedron {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices2[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 4;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1394,7 +1416,7 @@ namespace Octahedron {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices3[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 5;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1410,7 +1432,7 @@ namespace Octahedron {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices4[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 6;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1426,7 +1448,7 @@ namespace Octahedron {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices5[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 7;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1442,7 +1464,7 @@ namespace Octahedron {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices6[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 8;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1458,7 +1480,7 @@ namespace Octahedron {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices7[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 9;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1474,7 +1496,7 @@ namespace Octahedron {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices8[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 10;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1492,7 +1514,7 @@ namespace Octahedron {
 				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 12;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1509,7 +1531,7 @@ namespace Octahedron {
 				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices2[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 13;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1526,7 +1548,7 @@ namespace Octahedron {
 				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices3[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 14;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1543,7 +1565,7 @@ namespace Octahedron {
 				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices4[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 15;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1560,7 +1582,7 @@ namespace Octahedron {
 				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices5[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 16;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1577,7 +1599,7 @@ namespace Octahedron {
 				for (int i = 0; i<8; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVertices6[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 17;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
