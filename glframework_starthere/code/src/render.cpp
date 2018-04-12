@@ -68,7 +68,7 @@ glm::vec3 octaLaticePos[4];
 const int numSeeds = 20; 
 glm::vec3 seeds[numSeeds];
 glm::vec3 octaSeeds[numSeeds]; 
-float fallingSpeed = 0.01;
+float fallingSpeed = 0.2;
 float prevY[numSeeds];
 float octaprevY[numSeeds]; 
 glm::mat4 CameraMat;
@@ -1100,10 +1100,10 @@ namespace MyFirstShader {
 			layout(triangle_strip, max_vertices = 24) out;\n\
 			void main()\n\
 			{\n\
-				const vec4 vertices[4] = vec4[4](vec4(0.25, -0.25, 0.25, 1.0),\n\
-										vec4(0.25, 0.25, 0.25, 1.0),\n\
-										vec4(-0.25, -0.25, 0.25, 1.0),\n\
-										vec4(-0.25, 0.25, 0.25, 1.0));\n\
+				const vec4 vertices[4] = vec4[4](vec4(1.41, -1.41, 1.41, 1.0),\n\
+										vec4(1.41, 1.41, 1.41, 1.0),\n\
+										vec4(-1.41, -1.41, 1.41, 1.0),\n\
+										vec4(-1.41, 1.41, 1.41, 1.0));\n\
 				\n\
 				//CARA 1\n\
 				for (int i = 0; i<4; i++)\n\
@@ -1115,10 +1115,10 @@ namespace MyFirstShader {
 				EndPrimitive();\n\
 				\n\
 				//CARA 2\n\
-				const vec4 vertices2[4]= vec4[4](vec4(0.25, 0.25, 0.25, 1.0),\n\
-										vec4(0.25, 0.25, -0.25, 1.0),\n\
-										vec4(-0.25, 0.25, 0.25, 1.0),\n\
-										vec4(-0.25, 0.25, -0.25, 1.0));\n\
+				const vec4 vertices2[4]= vec4[4](vec4(1.41, 1.41, 1.41, 1.0),\n\
+										vec4(1.41, 1.41, -1.41, 1.0),\n\
+										vec4(-1.41, 1.41, 1.41, 1.0),\n\
+										vec4(-1.41, 1.41, -1.41, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = trans*vertices2[i]+gl_in[0].gl_Position;\n\
@@ -1127,10 +1127,10 @@ namespace MyFirstShader {
 				}\n\
 				EndPrimitive();\n\
 				//CARA 3\n\
-				const vec4 vertices3[4]= vec4[4](vec4(-0.25, -0.25, 0.25, 1.0),\n\
-										vec4(-0.25, 0.25, 0.25, 1.0),\n\
-										vec4(-0.25, -0.25, -0.25, 1.0),\n\
-										vec4(-0.25, 0.25, -0.25, 1.0));\n\
+				const vec4 vertices3[4]= vec4[4](vec4(-1.41, -1.41, 1.41, 1.0),\n\
+										vec4(-1.41, 1.41, 1.41, 1.0),\n\
+										vec4(-1.41, -1.41, -1.41, 1.0),\n\
+										vec4(-1.41, 1.41, -1.41, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = trans*vertices3[i]+gl_in[0].gl_Position;\n\
@@ -1139,10 +1139,10 @@ namespace MyFirstShader {
 				}\n\
 				EndPrimitive();\n\
 				//CARA 4\n\
-				const vec4 vertices4[4]= vec4[4](vec4(-0.25, -0.25, -0.25, 1.0),\n\
-										vec4(-0.25, 0.25, -0.25, 1.0),\n\
-										vec4(0.25, -0.25, -0.25, 1.0),\n\
-										vec4(0.25, 0.25, -0.25, 1.0));\n\
+				const vec4 vertices4[4]= vec4[4](vec4(-1.41, -1.41, -1.41, 1.0),\n\
+										vec4(-1.41, 1.41, -1.41, 1.0),\n\
+										vec4(1.41, -1.41, -1.41, 1.0),\n\
+										vec4(1.41, 1.41, -1.41, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = trans*vertices4[i]+gl_in[0].gl_Position;\n\
@@ -1151,10 +1151,10 @@ namespace MyFirstShader {
 				}\n\
 				EndPrimitive();\n\
 				//CARA 5\n\
-				const vec4 vertices5[4]= vec4[4](vec4(-0.25, -0.25, 0.25, 1.0),\n\
-										vec4(-0.25, -0.25, -0.25, 1.0),\n\
-										vec4(0.25, -0.25, 0.25, 1.0),\n\
-										vec4(0.25, -0.25, -0.25, 1.0));\n\
+				const vec4 vertices5[4]= vec4[4](vec4(-1.41, -1.41, 1.41, 1.0),\n\
+										vec4(-1.41, -1.41, -1.41, 1.0),\n\
+										vec4(1.41, -1.41, 1.41, 1.0),\n\
+										vec4(1.41, -1.41, -1.41, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = trans*vertices5[i]+gl_in[0].gl_Position;\n\
@@ -1163,10 +1163,10 @@ namespace MyFirstShader {
 				}\n\
 				EndPrimitive();\n\
 				//CARA 6\n\
-				const vec4 vertices6[4]= vec4[4](vec4(0.25, -0.25, -0.25, 1.0),\n\
-										vec4(0.25, 0.25, -0.25, 1.0),\n\
-										vec4(0.25, -0.25, 0.25, 1.0),\n\
-										vec4(0.25, 0.25, 0.25, 1.0));\n\
+				const vec4 vertices6[4]= vec4[4](vec4(1.41, -1.41, -1.41, 1.0),\n\
+										vec4(1.41, 1.41, -1.41, 1.0),\n\
+										vec4(1.41, -1.41, 1.41, 1.0),\n\
+										vec4(1.41, 1.41, 1.41, 1.0));\n\
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = trans*vertices6[i]+gl_in[0].gl_Position;\n\
@@ -1219,16 +1219,16 @@ namespace MyFirstShader {
 		srand(time(NULL));
 		for (int i = 0; i < numSeeds; i++)
 		{
-			seeds[i].x = 0.02f * (rand() % 100);
-			seeds[i].y = 0.02f * (rand() % 100);
-			seeds[i].z = 0.02f * (rand() % 100);
+			seeds[i].x =  (rand() % 20);
+			seeds[i].y =  (rand() % 20);
+			seeds[i].z =  (rand() % 20);
 			prevY[i] = seeds[i].y;
 		}
 
-		cubLaticePos[0] = { 0.5,0.0,0.0 };  // CUBE Left
-		cubLaticePos[1] = { -0.5,0.0,0.0 }; // CUBE Right
-		cubLaticePos[2] = { 0.0,0.5,0.5 };  // CUBE Up
-		cubLaticePos[3] = { 0.0,-0.5,0.5 }; // CUBE Down
+		cubLaticePos[0] = { 2.83,0.0,0.0 };  // CUBE Left
+		cubLaticePos[1] = { -2.83,0.0,0.0 }; // CUBE Right
+		cubLaticePos[2] = { 0.0,2.83,2.83 };  // CUBE Up
+		cubLaticePos[3] = { 0.0,-2.83,2.83 }; // CUBE Down
 	}
 
 
@@ -1238,10 +1238,10 @@ namespace MyFirstShader {
 		if (selected == 1 || selected == 3) {
 			//SelfRotation Matrix
 			if (selected == 3) {
-			SelfRotation = { 1.0, 0.0, 0.0, 0.f,
-							0.0, cos(currentTime), -sin(currentTime), 0.f,
-							0.0, sin(currentTime), cos(currentTime), 0.f,
-							0.f, 0.f, 0.f, 1.f };
+			SelfRotation = { cos(currentTime), -sin(currentTime), 0.0, 0.f,
+							 sin(currentTime), cos(currentTime), 0.0, 0.f,
+							 0.0, 0.0,1.0, 0.f,
+							 0.f, 0.f, 0.f, 1.f };
 			}
 
 			//Generate More than 1 cube
@@ -1252,8 +1252,8 @@ namespace MyFirstShader {
 									seeds[i].x,prevY[i],seeds[i].z,1.0 };
 
 				if (selected == 3) {
-					if (prevY[i] < -1.0)
-						prevY[i] = 2.0;
+					if (prevY[i] < -10.0)
+						prevY[i] = 20.0;
 
 					prevY[i] -= fallingSpeed;
 				}
@@ -1272,7 +1272,10 @@ namespace MyFirstShader {
 
 		//EXERCICE 2
 		if (selected == 2) {
-			//Centered cubic lattice.		
+			//Centered cubic lattice.	
+			transition = false; 
+			param = 1;
+
 			for (int i = 0; i < 4; i++)
 			{
 				glm::mat4 latticeTrans = { 1.0, 0.0, 0.0, 0.0,
@@ -1285,9 +1288,11 @@ namespace MyFirstShader {
 										   0.0, 0.0, 0.0, 1.0 };
 				glm::mat4 latticeTotalTrans = RV::_MVP * latticeTrans;
 
-				glUseProgram(myRenderProgram);
+				glUseProgram(Octahedron::OctaRenderProgram);
 
-				glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "trans"), 1, GL_FALSE, glm::value_ptr(latticeTotalTrans));
+				glUniformMatrix4fv(glGetUniformLocation(Octahedron::OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(latticeTotalTrans));
+				glUniform1f(glGetUniformLocation(Octahedron::OctaRenderProgram, "param"), param); //Pass the param into shader. 
+
 
 				glDrawArrays(GL_TRIANGLES, 0, 3);
 			}
@@ -1326,16 +1331,16 @@ namespace Octahedron {
 			"#version 330\n\
 			\n\
 			out vec4 color;\n\
+			uniform int aligned;\n\
 			\n\
 			void main() {\n\
-			const vec4 colors[6] = vec4[6]( vec4( 0.4, 0.0, .9, 1.0),\n\
-											vec4( 0.25, 0.0, 0.8, 1.0),\n\
-											vec4( 0.5, 0.0, 0.8, 1.0),\n\
-											vec4( 0.2, 0.0, 1.0, 1.0),\n\
-											vec4( 0.5, 0.0, 1.0, 1.0),\n\
-											vec4( 0.3, 0.0, 0.5, 1.0));\n\
-			color = colors[gl_PrimitiveID ];\n\
-			}" };
+			vec4 colors[26]; \n\
+			for(int i = 0; i < 25; i++){\n\
+			colors[i] = vec4(((i / 25) * 66.0) / 255.0, (20 + (i * 8))/ 255.0, ((i / 25) *  32.0 )/ 255.0, 1.0); \n\
+			}\n\
+			color = colors[gl_PrimitiveID];\n\
+			}" 
+		};
 
 		static  GLchar * octageom_shader_source[] = {
 			"#version 330 \n\
@@ -1347,7 +1352,7 @@ namespace Octahedron {
 			{\n\
 			//HEXAGONO \n\
 			//CARA 1 \n\
-				 vec4 OctaVertices[6] = vec4[6](		 vec4( -1.41,  1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
+				 vec4 OctaVertices[6] = vec4[6](	 vec4( -1.41,  1.41 * param, -2.83 + 1.41 * param, 1.0),\n\
 													 vec4( -2.83 +  1.41 * param, 1.41 * param, -1.41, 1.0),\n\
 													 vec4( -1.41 * param, 1.41, -2.83 + 1.41 * param, 1.0),\n\
 													 vec4( -2.83 + 1.41 * param, 1.41, -1.41 * param, 1.0),\n\
@@ -1357,7 +1362,7 @@ namespace Octahedron {
 				for (int i = 0; i<6; i++)\n\
 				{\n\
 					gl_Position = octaTrans*OctaVertices[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 0;\n\
+					gl_PrimitiveID = 25;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1585,7 +1590,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT1[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1597,7 +1602,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT2[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1609,7 +1614,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT3[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1621,7 +1626,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT4[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1633,7 +1638,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT5[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1645,7 +1650,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT6[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1657,7 +1662,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT7[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1669,7 +1674,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT8[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1681,7 +1686,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT9[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1693,7 +1698,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT10[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1705,7 +1710,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT11[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1717,7 +1722,7 @@ namespace Octahedron {
 				for (int i = 0; i<4; i++)\n\
 				{\n\
 					gl_Position = octaTrans*QuadVerticesT12[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
+				gl_PrimitiveID = 2;\n\
 					EmitVertex();\n\
 				}\n\
 				EndPrimitive();\n\
@@ -1765,9 +1770,9 @@ namespace Octahedron {
 		srand(time(NULL));
 		for (int i = 0; i < numSeeds; i++)
 		{
-			octaSeeds[i].x = 0.02f * (rand() % 100);
-			octaSeeds[i].y = 0.02f * (rand() % 100);
-			octaSeeds[i].z = 0.02f * (rand() % 100);
+			octaSeeds[i].x = (rand() % 20);
+			octaSeeds[i].y = (rand() % 20);
+			octaSeeds[i].z = (rand() % 20);
 			octaprevY[i] = octaSeeds[i].y;
 		}
 
@@ -1801,6 +1806,8 @@ namespace Octahedron {
 
 
 		if (selected == 4) {
+			transition = false; 
+			param = 0;
 			OctaSelfRotation = { 1.0, 0.0, 0.0, 0.f,
 				0.0, cos(currentTime), -sin(currentTime), 0.f,
 				0.0, sin(currentTime), cos(currentTime), 0.f,
@@ -1812,8 +1819,8 @@ namespace Octahedron {
 					0.0 ,0.0, 1.0, 0.0,   //Modificar por numero para que caiga
 					octaSeeds[i].x,octaprevY[i],octaSeeds[i].z,1.0 };
 
-				if (octaprevY[i] < -1.0)
-					octaprevY[i] = 2.0;
+				if (octaprevY[i] < -10.0)
+					octaprevY[i] = 20.0;
 
 				octaprevY[i] -= fallingSpeed;
 
@@ -1833,6 +1840,7 @@ namespace Octahedron {
 
 
 		if (selected == 20) {
+			transition = true; 
 			for (int i = 0; i < 4; i++) {
 
 				glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
@@ -1854,7 +1862,7 @@ namespace Octahedron {
 
 
 		if (selected == 6) {
-
+			transition = true;
 			for (int i = 0; i < 10; i++) {
 				for (int j = 0; j < 10; j++) {
 					/*glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
