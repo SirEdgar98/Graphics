@@ -65,6 +65,7 @@ namespace wireOctahedron {
 ////////////////
 glm::vec3 cubLaticePos[4]; 
 glm::vec3 octaLaticePos[4];
+glm::vec3 wireOctaLaticePos[4];
 const int numSeeds = 20; 
 glm::vec3 seeds[numSeeds];
 glm::vec3 octaSeeds[numSeeds]; 
@@ -97,6 +98,7 @@ void MyGUI()
 		ImGui::RadioButton("Ex 4", &selected, 4);
 		ImGui::RadioButton("Ex 5", &selected, 5); 
 		ImGui::RadioButton("Ex 6", &selected, 6);
+		ImGui::RadioButton("Ex 6 More", &selected, 60);
 
 	}
 	// .........................
@@ -1883,15 +1885,10 @@ namespace Octahedron {
 
 
 
-		if (selected == 6) {
+		if (selected == 60) {
 			transition = true;
 			for (int i = 0; i < 10; i++) {
 				for (int j = 0; j < 10; j++) {
-					/*glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
-						0.0, 1.0, 0.0, 0.0,
-						0.0, 0.0, 1.0, 0.0,
-						2.81 * i, 2.81 * j, -abs(2.81 * static_cast<float>((i + j) % 2)) ,1.0 };*/
-
 
 					glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
 						0.0, 1.0, 0.0, 0.0,
@@ -2134,13 +2131,20 @@ namespace wireOctahedron {
 		WireOctaRenderProgram = myShaderCompile();
 		glCreateVertexArrays(1, &myVAO);
 		glBindVertexArray(myVAO);
+
+		wireOctaLaticePos[0] = { 2.81,0.0,0.0 };  // Octa Left
+		wireOctaLaticePos[1] = { -2.81,0.0,0.0 }; // Octa Right
+		wireOctaLaticePos[2] = { 0.0,2.81,2.81 };  // Octa Up
+		wireOctaLaticePos[3] = { 0.0,-2.81,2.81 }; // Octa Down
 	}
 	void myRenderCode(double currentTime) {
-		if (selected == 5) {
+		if (selected == 6) {
+
+			for (int i = 0; i < 4; i++) {
 			glm::mat4 wire_OctaCenter = { 1.0, 0.0, 0.0, 0.0,
-				0.0, 1.0, 0.0, 0.0,
-				0.0, 0.0, 1.0, 0.0,
-				0.0, 0.0, 0.0, 1.0 };
+										  0.0, 1.0, 0.0, 0.0,
+										  0.0, 0.0, 1.0, 0.0,
+										  wireOctaLaticePos[i].x,wireOctaLaticePos[i].y, wireOctaLaticePos[i].z, 1.0 };
 
 			wire_OctaCenter = RV::_MVP * wire_OctaCenter;
 
@@ -2149,8 +2153,29 @@ namespace wireOctahedron {
 			glUniformMatrix4fv(glGetUniformLocation(WireOctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(wire_OctaCenter));
 
 			glDrawArrays(GL_LINES, 0, 3);
+			}
 		}
-	}
+
+		if (selected == 60) {
+			transition = true;
+			for (int i = 0; i < 10; i++) {
+				for (int j = 0; j < 10; j++) {
+					glm::mat4 wire_OctaCenter = { 1.0, 0.0, 0.0, 0.0,
+						0.0, 1.0, 0.0, 0.0,
+						0.0, 0.0, 1.0, 0.0,
+						2.81 * i, 2.81 * j, 2*2.81 ,1.0 };
+
+					wire_OctaCenter = RV::_MVP * wire_OctaCenter;
+
+					glUseProgram(WireOctaRenderProgram);
+
+					glUniformMatrix4fv(glGetUniformLocation(WireOctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(wire_OctaCenter));
+
+					glDrawArrays(GL_LINES, 0, 3);
+				}
+				}
+			}
+		}
 	void myCleanupCode() {
 		glDeleteVertexArrays(1, &myVAO);
 		glDeleteProgram(WireOctaRenderProgram);
