@@ -66,12 +66,14 @@ namespace wireOctahedron {
 glm::vec3 cubLaticePos[4]; 
 glm::vec3 octaLaticePos[4];
 glm::vec3 wireOctaLaticePos[4];
-const int numSeeds = 20; 
+const int numSeeds = 50; 
 glm::vec3 seeds[numSeeds];
 glm::vec3 octaSeeds[numSeeds]; 
 float fallingSpeed = 0.2;
 float prevY[numSeeds];
 float octaprevY[numSeeds]; 
+float rotationsY[numSeeds];
+float rotationsZ[numSeeds];
 glm::mat4 CameraMat;
 float param = 0; // Parameter for transformation between cube and octahedron between 0 and 1
 bool paramInc = true;
@@ -93,12 +95,11 @@ void MyGUI()
 		ImGui::RadioButton("Ex 1", &selected, 1); 
 		ImGui::RadioButton("Ex 2", &selected, 2);
 		ImGui::SameLine(); 
-		ImGui::RadioButton("HonyComb", &selected, 20); 
+		ImGui::RadioButton("HoneyComb", &selected, 20); 
 		ImGui::RadioButton("Ex 3", &selected, 3);
 		ImGui::RadioButton("Ex 4", &selected, 4);
 		ImGui::RadioButton("Ex 5", &selected, 5); 
 		ImGui::RadioButton("Ex 6", &selected, 6);
-		ImGui::RadioButton("Ex 6 More", &selected, 60);
 
 	}
 	// .........................
@@ -130,8 +131,7 @@ namespace RV = RenderVars;
 
 void GLResize(int width, int height) {
 	glViewport(0, 0, width, height);
-	if (height != 0) RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
-	else RV::_projection = glm::perspective(RV::FOV, 0.f, RV::zNear, RV::zFar);
+
 }
 
 void GLmousecb(MouseEvent ev) {
@@ -168,12 +168,18 @@ void GLinit(int width, int height) {
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
-	float scale = 50;
+	float scale = 40;
 	RV::_projection = glm::ortho(-(float)width / scale, (float)width / scale, -(float)height / scale, (float)width / scale, RV::zNear, RV::zFar);
 
 	// Setup shaders & geometry
 	
 	CameraMat = glm::lookAt(glm::vec3(-0.2, 0, -4), glm::vec3(0.5, -0.5, 0), glm::vec3(0, 1, 0));
+
+	for (int i = 0; i < numSeeds; i++) {
+
+		rotationsY[i] = 0.01 * (rand() % 200) - 0.1;
+		rotationsZ[i] = 0.01 * (rand() % 200) - 0.1;
+	}
 
 	MyFirstShader::myInitCode();
 	Octahedron::myInitCode(); 
@@ -190,11 +196,9 @@ void GLcleanup() {
 void GLrender(double currentTime) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	RV::_modelView = glm::mat4(1.f);
-	RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
+	/*RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
 	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
-	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
-
+	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));*/
 	RV::_MVP = RV::_projection * RV::_modelView;
 
 	// render code
@@ -1221,9 +1225,9 @@ namespace MyFirstShader {
 		srand(time(NULL));
 		for (int i = 0; i < numSeeds; i++)
 		{
-			seeds[i].x =  (rand() % 20);
-			seeds[i].y =  (rand() % 20);
-			seeds[i].z =  (rand() % 20);
+			seeds[i].x = 2.81 *  (rand() % 30) -25;
+			seeds[i].y = (rand() % 70);
+			seeds[i].z = 0;
 			prevY[i] = seeds[i].y;
 		}
 
@@ -1238,29 +1242,36 @@ namespace MyFirstShader {
 		//EXERCICE 1
 		glm::mat4 SelfRotation; 
 		if (selected == 1 || selected == 3) {
-			//SelfRotation Matrix
-			if (selected == 3) {
-			SelfRotation = { cos(currentTime), -sin(currentTime), 0.0, 0.f,
-							 sin(currentTime), cos(currentTime), 0.0, 0.f,
-							 0.0, 0.0,1.0, 0.f,
-							 0.f, 0.f, 0.f, 1.f };
-			}
+			
+			
 
-			//Generate More than 1 cube
 			for (int i = 0; i < numSeeds; i++) {
 				glm::mat4 trans = { 1.0, 0.0, 0.0, 0.0,
 									0.0, 1.0, 0.0, 0.0,
-									0.0 ,0.0, 1.0, 0.0,   //Modificar por numero para que caiga
+									0.0 ,0.0, 1.0, 0.0,
 									seeds[i].x,prevY[i],seeds[i].z,1.0 };
+				if (selected == 1)
+					RV::_modelView = glm::lookAt(glm::vec3(15, 30.5, 1), glm::vec3(15.5, 30, 0), glm::vec3(0, 1, 0));
 
 				if (selected == 3) {
-					if (prevY[i] < -10.0)
-						prevY[i] = 20.0;
+					if (prevY[i] < -15.0)
+						prevY[i] = 60.0;
 
 					prevY[i] -= fallingSpeed;
+
+					SelfRotation = glm::mat4{	1.0, 0.0, 0.0, 0.f,
+												0.0, cos(currentTime * rotationsZ[i]), -sin(currentTime * rotationsZ[i]), 0.f,
+												0.0, sin(currentTime * rotationsZ[i]), cos(currentTime * rotationsZ[i]), 0.f,
+												0.f, 0.f, 0.f, 1.f } *
+												glm::mat4{ cos(currentTime * rotationsY[i]),  0.0,-sin(currentTime * rotationsY[i]), 0.f,
+												0.0, 1.0,0.0, 0.f,
+												sin(currentTime * rotationsY[i]), 0.0,cos(currentTime * rotationsY[i]), 0.f,
+												0.f, 0.f, 0.f, 1.f };
+
+					RV::_modelView = glm::lookAt(glm::vec3(15, 15, 1), glm::vec3(15.5, 15, 0), glm::vec3(0, 1, 0));
 				}
 
-
+				
 				glm::mat4 myTransformM = RV::_MVP * trans  * SelfRotation;
 
 				glUseProgram(myRenderProgram);
@@ -1278,25 +1289,29 @@ namespace MyFirstShader {
 			transition = false; 
 			param = 1;
 
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < 5; i++)
 			{
-				glm::mat4 latticeTrans = { 1.0, 0.0, 0.0, 0.0,
-										0.0, 1.0, 0.0, 0.0,
-										0.0 ,0.0, 1.0, 0.0,
-										cubLaticePos[i].x,cubLaticePos[i].y,cubLaticePos[i].z,1.0 };
-				glm::mat4 latticeScale = { 1.0, 0.0, 0.0, 0.0,
-										   0.0, 1.0, 0.0, 0.0,
-										   0.0, 0.0, 1.0, 0.0,
-										   0.0, 0.0, 0.0, 1.0 };
-				glm::mat4 latticeTotalTrans = RV::_MVP * latticeTrans;
+				for (int j = 0; j < 5; j++)
+				{
+					glm::mat4 latticeTrans = { 1.0, 0.0, 0.0, 0.0,
+											0.0, 1.0, 0.0, 0.0,
+											0.0 ,0.0, 1.0, 0.0,
+											2.81 * i, 2.81 * j, (i + j) % 2 * 2.81, 1.0 };
+					glm::mat4 latticeScale = { 1.0, 0.0, 0.0, 0.0,
+											   0.0, 1.0, 0.0, 0.0,
+											   0.0, 0.0, 1.0, 0.0,
+											   0.0, 0.0, 0.0, 1.0 };
+					glm::mat4 latticeTotalTrans = RV::_MVP * latticeTrans;
 
-				glUseProgram(Octahedron::OctaRenderProgram);
+					RV::_modelView = glm::lookAt(glm::vec3(cos(currentTime / 2), 8, sin(currentTime / 2)), glm::vec3(0, 8.2, 0), glm::vec3(0, -1, 0));
+					glUseProgram(Octahedron::OctaRenderProgram);
 
-				glUniformMatrix4fv(glGetUniformLocation(Octahedron::OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(latticeTotalTrans));
-				glUniform1f(glGetUniformLocation(Octahedron::OctaRenderProgram, "param"), param); //Pass the param into shader. 
+					glUniformMatrix4fv(glGetUniformLocation(Octahedron::OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(latticeTotalTrans));
+					glUniform1f(glGetUniformLocation(Octahedron::OctaRenderProgram, "param"), param); //Pass the param into shader. 
 
 
-				glDrawArrays(GL_TRIANGLES, 0, 3);
+					glDrawArrays(GL_TRIANGLES, 0, 3);
+				}
 			}
 		}
 
@@ -1785,7 +1800,7 @@ namespace Octahedron {
 
 	}
 
-	float zcoords[100];
+	float zcoords[1000];
 	void myInitCode(void) {
 		OctaRenderProgram = myShaderCompile();
 		glCreateVertexArrays(1, &myVAO);
@@ -1794,10 +1809,11 @@ namespace Octahedron {
 		srand(time(NULL));
 		for (int i = 0; i < numSeeds; i++)
 		{
-			octaSeeds[i].x = (rand() % 20);
-			octaSeeds[i].y = (rand() % 20);
-			octaSeeds[i].z = (rand() % 20);
+			octaSeeds[i].x = 2.81 * (rand() % 30) - 25;
+			octaSeeds[i].y = (rand() % 70);
+			octaSeeds[i].z = 0;
 			octaprevY[i] = octaSeeds[i].y;
+
 		}
 
 		octaLaticePos[0] = { 2.81,0.0,0.0 };  // Octa Left
@@ -1832,25 +1848,35 @@ namespace Octahedron {
 		if (selected == 4) {
 			transition = false; 
 			param = 0;
-			OctaSelfRotation = { 1.0, 0.0, 0.0, 0.f,
-				0.0, cos(currentTime), -sin(currentTime), 0.f,
-				0.0, sin(currentTime), cos(currentTime), 0.f,
-				0.f, 0.f, 0.f, 1.f };
+			
+			glm::mat4 SelfRotation;
 
 			for (int i = 0; i < numSeeds; i++) {
 				glm::mat4 OctaRand = { 1.0, 0.0, 0.0, 0.0,
 					0.0, 1.0, 0.0, 0.0,
-					0.0 ,0.0, 1.0, 0.0,   //Modificar por numero para que caiga
+					0.0 ,0.0, 1.0, 0.0,   
 					octaSeeds[i].x,octaprevY[i],octaSeeds[i].z,1.0 };
 
-				if (octaprevY[i] < -10.0)
-					octaprevY[i] = 20.0;
+				
+
+				if (octaprevY[i] < -15.0)
+					octaprevY[i] = 60.0;
 
 				octaprevY[i] -= fallingSpeed;
 
+				SelfRotation = glm::mat4{ 1.0, 0.0, 0.0, 0.f,
+											0.0, cos(currentTime * rotationsZ[i]), -sin(currentTime * rotationsZ[i]), 0.f,
+											0.0, sin(currentTime * rotationsZ[i]), cos(currentTime * rotationsZ[i]), 0.f,
+											0.f, 0.f, 0.f, 1.f } *
+											glm::mat4{ cos(currentTime * rotationsY[i]),  0.0,-sin(currentTime * rotationsY[i]), 0.f,
+											0.0, 1.0,0.0, 0.f,
+											sin(currentTime * rotationsY[i]), 0.0,cos(currentTime * rotationsY[i]), 0.f,
+											0.f, 0.f, 0.f, 1.f };
 
-				glm::mat4 myTransformM = RV::_MVP * OctaRand  * OctaSelfRotation;
+				RV::_modelView = glm::lookAt(glm::vec3(15, 15, 1), glm::vec3(15.5, 15, 0), glm::vec3(0, 1, 0));
 
+
+				glm::mat4 myTransformM = RV::_MVP * OctaRand  * SelfRotation ;
 				glUseProgram(OctaRenderProgram);
 
 				glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(myTransformM));
@@ -1865,36 +1891,40 @@ namespace Octahedron {
 
 		if (selected == 20) {
 			transition = true; 
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < 5; i++) {
+				for (int j = 0; j < 5; j++) {
+					glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
+						0.0, 1.0, 0.0, 0.0,
+						0.0, 0.0, 1.0, 0.0,
+						2.81 * i, 2.81 * j, (i + j) % 2 * 2.81, 1.0 };
 
-				glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
-					0.0, 1.0, 0.0, 0.0,
-					0.0, 0.0, 1.0, 0.0,
-					octaLaticePos[i].x, octaLaticePos[i].y, octaLaticePos[i].z, 1.0 };
-
-				OctaCenter = RV::_MVP * OctaCenter;
+					RV::_modelView = glm::lookAt(glm::vec3(cos(currentTime / 2), 8, sin(currentTime / 2)), glm::vec3(0, 8.2, 0), glm::vec3(0, -1, 0));
+					OctaCenter = RV::_MVP * OctaCenter;
 
 
-				glUseProgram(OctaRenderProgram);
+					glUseProgram(OctaRenderProgram);
 
-				glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(OctaCenter));
-				glUniform1f(glGetUniformLocation(OctaRenderProgram, "param"), param); //Pass the param into shader. 
-				glDrawArrays(GL_TRIANGLES, 0, 3);
+					glUniformMatrix4fv(glGetUniformLocation(OctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(OctaCenter));
+					glUniform1f(glGetUniformLocation(OctaRenderProgram, "param"), param); //Pass the param into shader. 
+					glDrawArrays(GL_TRIANGLES, 0, 3);
+				}
 			}
 		}
 
 
 
-		if (selected == 60) {
-			transition = true;
-			for (int i = 0; i < 10; i++) {
-				for (int j = 0; j < 10; j++) {
+		if (selected == 6) {
+			transition = false;
+			param = 0;
+			for (int i = -20; i < 20; i++) {
+				for (int j = -20; j < 20; j++) {
 
 					glm::mat4 OctaCenter = { 1.0, 0.0, 0.0, 0.0,
 						0.0, 1.0, 0.0, 0.0,
 						0.0, 0.0, 1.0, 0.0,
-						2.81 * i, 2.81 * j, zcoords[i + (10 * j)] ,1.0 };
+						2.81 * i, 2.81 * j, zcoords[abs(i) + (20 * abs(j))] ,1.0 };
 
+					RV::_modelView = glm::lookAt(glm::vec3(abs(cos(currentTime/5)), 0, abs(sin(currentTime/5))), glm::vec3(0,0, 0), glm::vec3(0, -1, 0));
 					OctaCenter = RV::_MVP * OctaCenter;
 
 
@@ -1940,7 +1970,7 @@ namespace wireOctahedron {
 			out vec4 color;\n\
 			\n\
 			void main() {\n\
-			const vec4 colors[6] = vec4[6](vec4( 0.4, 0.0, .9, 1.0),\n\
+			const vec4 colors[6] = vec4[6](vec4( 0.0, 1.0, .0, 1.0),\n\
 											vec4(0.25, 0.0, 0.8, 1.0),\n\
 											vec4( 0.5, 0.0, 0.8, 1.0),\n\
 											vec4(0.2, 0.0, 1.0, 1.0),\n\
@@ -2140,30 +2170,13 @@ namespace wireOctahedron {
 	void myRenderCode(double currentTime) {
 		if (selected == 6) {
 
-			for (int i = 0; i < 4; i++) {
-			glm::mat4 wire_OctaCenter = { 1.0, 0.0, 0.0, 0.0,
-										  0.0, 1.0, 0.0, 0.0,
-										  0.0, 0.0, 1.0, 0.0,
-										  wireOctaLaticePos[i].x,wireOctaLaticePos[i].y, wireOctaLaticePos[i].z, 1.0 };
-
-			wire_OctaCenter = RV::_MVP * wire_OctaCenter;
-
-			glUseProgram(WireOctaRenderProgram);
-
-			glUniformMatrix4fv(glGetUniformLocation(WireOctaRenderProgram, "octaTrans"), 1, GL_FALSE, glm::value_ptr(wire_OctaCenter));
-
-			glDrawArrays(GL_LINES, 0, 3);
-			}
-		}
-
-		if (selected == 60) {
 			transition = true;
 			for (int i = 0; i < 10; i++) {
 				for (int j = 0; j < 10; j++) {
 					glm::mat4 wire_OctaCenter = { 1.0, 0.0, 0.0, 0.0,
 						0.0, 1.0, 0.0, 0.0,
 						0.0, 0.0, 1.0, 0.0,
-						2.81 * i, 2.81 * j, 2*2.81 ,1.0 };
+						2.81 * i, 2.81 * j, 2 * 2.81 ,1.0 };
 
 					wire_OctaCenter = RV::_MVP * wire_OctaCenter;
 
@@ -2173,8 +2186,10 @@ namespace wireOctahedron {
 
 					glDrawArrays(GL_LINES, 0, 3);
 				}
-				}
 			}
+		}
+
+		
 		}
 	void myCleanupCode() {
 		glDeleteVertexArrays(1, &myVAO);
