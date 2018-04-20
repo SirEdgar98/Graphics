@@ -65,6 +65,7 @@ bool loadOBJ(const char * path,
 			normalIndices.push_back(normalIndex[2]);
 		}
 
+
 	}
 
 	// For each vertex of each triangle
@@ -81,7 +82,6 @@ bool loadOBJ(const char * path,
 		glm::vec3 normal = temp_normals[normalIndex - 1];
 		out_normals.push_back(normal);
 	}
-
 
 
 	return true;

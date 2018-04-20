@@ -3,11 +3,11 @@
 #include <glm\gtc\matrix_transform.hpp>
 
 // Boolean variables allow to show/hide the primitives
-bool renderSphere = false;
+bool renderSphere = true;
 bool renderCapsule = false;
 bool renderParticles = false;
 bool renderCloth = false;
-bool renderCube = false;
+bool renderCube = true;
 
 namespace Sphere {
 	extern void setupSphere(glm::vec3 pos = glm::vec3(0.f, 1.f, 0.f), float radius = 1.f);
@@ -39,7 +39,7 @@ namespace Cube {
 	extern void setupCube();
 	extern void cleanupCube();
 	extern void updateCube(const glm::mat4& transform);
-	extern void drawCube(double currentTime);
+	extern void drawCube();
 }
 
 void setupPrims() {
@@ -57,7 +57,7 @@ void cleanupPrims() {
 	Cube::cleanupCube();
 }
 
-void renderPrims(double currentTime) {
+void renderPrims() {
 	if (renderSphere)
 		Sphere::drawSphere();
 	if (renderCapsule)
@@ -75,5 +75,5 @@ void renderPrims(double currentTime) {
 		ClothMesh::drawClothMesh();
 
 	if (renderCube)
-		Cube::drawCube(currentTime);
+		Cube::drawCube();
 }
