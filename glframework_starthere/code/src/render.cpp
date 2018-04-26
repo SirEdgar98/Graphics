@@ -199,7 +199,7 @@ void GLrender(double currentTime) {
 	Axis::drawAxis();*/
 
 	if (light_moves)
-		lightPos = glm::vec3(40 * cos((float)currentTime), 40 * sin((float)currentTime), 0);
+		lightPos = glm::vec3(40 * cos((float)currentTime), 30, 0);
 
 	Sphere::updateSphere(lightPos, 1.0f);
 	Sphere::drawSphere();
@@ -933,13 +933,19 @@ namespace MyLoadedModel {
 
 	const char* model_fragShader =
 		"#version 330\n\
-in vec4 vert_Normal;\n\
-in vec3 lDir;\n\
-out vec4 out_Color;\n\
-uniform mat4 mv_Mat;\n\
-uniform vec4 color;\n\
-void main() {\n\
-	out_Color = vec4(color.xyz * dot(vert_Normal, mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) , 1.0 );\n\
+		in vec4 vert_Normal;\n\
+		in vec3 lDir;\n\
+		out vec4 out_Color;\n\
+		uniform mat4 mv_Mat;\n\
+		uniform vec4 color;\n\
+		float kd = 0.5;\n\
+		void main() {\n\
+		float U = dot(vert_Normal, mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
+		if (U < 0.2) U = 0.1;\n\
+		if (U >= 0.3 && U < 0.5) U = 0.4;\n\
+		if (U >= 0.5 && U < 0.7) U = 0.6;\n\
+		if (U >= 0.9) U = 1.0;\n\
+			out_Color = vec4(color.xyz * U, 1.0 );\n\
 }";
 	void setupModel() {
 		glGenVertexArrays(1, &modelVao);
@@ -994,7 +1000,7 @@ void main() {\n\
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
-		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.5f, .5f, 1.f, 0.f);
+		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.3f, 0.f, 0.f);
 
 		glDrawArrays(GL_TRIANGLES, 0, 100000);
 
