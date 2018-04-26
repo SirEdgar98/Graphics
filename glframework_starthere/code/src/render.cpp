@@ -190,202 +190,6 @@ void GLcleanup() {
 }
 
 
-namespace MyFirstShader {
-
-
-	//1.  Declare shader
-	//la GPU treballa amb strings
-	//glPosition = vec4(x,y,z,w);
-	//IMPORTANTE: pintar los puntos en orden y sentido counter clockwise o pintara la figura por la cara que no se ve
-
-	//2.  Compile and link shader
-	GLuint myShaderCompile(void) {
-		static const GLchar * vertex_shader_source[] =
-		{
-			"#version 330										\n\
-		\n\
-		void main() {\n\
-		const vec4 vertices[3] = vec4[3](vec4( 0.25, -0.25, 0.5, 1.0),\n\
-									   vec4(0.25, 0.25, 0.5, 1.0),\n\
-										vec4( -0.25,  -0.25, 0.5, 1.0));\n\
-		gl_Position = vertices[gl_VertexID];\n\
-		}"
-		};
-
-		//the fragment shader considers gl_PrimitiveID:
-
-		static const GLchar * fragment_shader_source[] =
-		{
-			"#version 330\n\
-			\n\
-			out vec4 color;\n\
-			\n\
-			void main() {\n\
-			const vec4 colors[6] = vec4[6]( vec4( 0.4, 0.0, .9, 1.0),\n\
-											vec4(0.25, 0.0, 0.8, 1.0),\n\
-											vec4( 0.5, 0.0, 0.8, 1.0),\n\
-											vec4(0.2, 0.0, 1.0, 1.0),\n\
-											vec4(0.5, 0.0, 1.0, 1.0),\n\
-											vec4( 0.3, 0.0, 0.5, 1.0));\n\
-			color = colors[gl_PrimitiveID];\n\
-			}" };
-
-
-		//in the geometry shader notice how gl_PrimitiveID is assigned before emitting each vertex
-
-		static const GLchar * geom_shader_source[] = {
-			"#version 330 \n\
-			uniform mat4 trans;\n\
-			layout(triangles) in;\n\
-			layout(triangle_strip, max_vertices = 24) out;\n\
-			void main()\n\
-			{\n\
-				const vec4 vertices[4] = vec4[4](vec4(1.41, -1.41, 1.41, 1.0),\n\
-										vec4(1.41, 1.41, 1.41, 1.0),\n\
-										vec4(-1.41, -1.41, 1.41, 1.0),\n\
-										vec4(-1.41, 1.41, 1.41, 1.0));\n\
-				\n\
-				//CARA 1\n\
-				for (int i = 0; i<4; i++)\n\
-				{\n\
-					gl_Position = trans*vertices[i]+gl_in[0].gl_Position;\n\
-					gl_PrimitiveID = 0;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				\n\
-				//CARA 2\n\
-				const vec4 vertices2[4]= vec4[4](vec4(1.41, 1.41, 1.41, 1.0),\n\
-										vec4(1.41, 1.41, -1.41, 1.0),\n\
-										vec4(-1.41, 1.41, 1.41, 1.0),\n\
-										vec4(-1.41, 1.41, -1.41, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
-				{\n\
-					gl_Position = trans*vertices2[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 1;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				//CARA 3\n\
-				const vec4 vertices3[4]= vec4[4](vec4(-1.41, -1.41, 1.41, 1.0),\n\
-										vec4(-1.41, 1.41, 1.41, 1.0),\n\
-										vec4(-1.41, -1.41, -1.41, 1.0),\n\
-										vec4(-1.41, 1.41, -1.41, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
-				{\n\
-					gl_Position = trans*vertices3[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 2;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				//CARA 4\n\
-				const vec4 vertices4[4]= vec4[4](vec4(-1.41, -1.41, -1.41, 1.0),\n\
-										vec4(-1.41, 1.41, -1.41, 1.0),\n\
-										vec4(1.41, -1.41, -1.41, 1.0),\n\
-										vec4(1.41, 1.41, -1.41, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
-				{\n\
-					gl_Position = trans*vertices4[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 3;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				//CARA 5\n\
-				const vec4 vertices5[4]= vec4[4](vec4(-1.41, -1.41, 1.41, 1.0),\n\
-										vec4(-1.41, -1.41, -1.41, 1.0),\n\
-										vec4(1.41, -1.41, 1.41, 1.0),\n\
-										vec4(1.41, -1.41, -1.41, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
-				{\n\
-					gl_Position = trans*vertices5[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 4;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-				//CARA 6\n\
-				const vec4 vertices6[4]= vec4[4](vec4(1.41, -1.41, -1.41, 1.0),\n\
-										vec4(1.41, 1.41, -1.41, 1.0),\n\
-										vec4(1.41, -1.41, 1.41, 1.0),\n\
-										vec4(1.41, 1.41, 1.41, 1.0));\n\
-				for (int i = 0; i<4; i++)\n\
-				{\n\
-					gl_Position = trans*vertices6[i]+gl_in[0].gl_Position;\n\
-				gl_PrimitiveID = 5;\n\
-					EmitVertex();\n\
-				}\n\
-				EndPrimitive();\n\
-			}"
-		};
-
-
-		GLuint vertex_shader;
-		GLuint fragment_shader;
-		GLuint geom_shader;
-		GLuint program;
-
-		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
-		glCompileShader(vertex_shader);
-
-
-		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
-		glCompileShader(fragment_shader);
-
-		geom_shader = glCreateShader(GL_GEOMETRY_SHADER);
-		glShaderSource(geom_shader, 1, geom_shader_source, NULL);
-		glCompileShader(geom_shader);
-
-		program = glCreateProgram();
-		glAttachShader(program, vertex_shader);
-		glAttachShader(program, fragment_shader);
-		glAttachShader(program, geom_shader);
-		glLinkProgram(program);
-
-		glDeleteShader(vertex_shader);
-		glDeleteShader(fragment_shader);
-		glDeleteShader(geom_shader);
-
-		return program;
-	}
-
-
-	void  myInitCode(void) {
-
-		myRenderProgram = myShaderCompile();
-		glCreateVertexArrays(1, &myVAO);
-		glBindVertexArray(myVAO);
-	}
-
-	
-
-
-	void myRenderCode(double currentTime) {
-
-				glm::mat4 myTransformM = RV::_MVP ;
-
-				glUseProgram(myRenderProgram);
-
-				glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "trans"), 1, GL_FALSE, glm::value_ptr(myTransformM));
-
-				glDrawArrays(GL_TRIANGLES, 0, 3);
-
-			
-	}
-
-
-				
-
-
-	//5. Cleanup shader
-	void myCleanupCode(void) {
-		glDeleteVertexArrays(1, &myVAO);
-		glDeleteProgram(myRenderProgram);
-
-	}
-
-}
-
 void GLrender(double currentTime) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -787,5 +591,201 @@ namespace MyLoadedModel {
 
 	}
 
+
+}
+
+namespace MyFirstShader {
+
+
+	//1.  Declare shader
+	//la GPU treballa amb strings
+	//glPosition = vec4(x,y,z,w);
+	//IMPORTANTE: pintar los puntos en orden y sentido counter clockwise o pintara la figura por la cara que no se ve
+
+	//2.  Compile and link shader
+	GLuint myShaderCompile(void) {
+		static const GLchar * vertex_shader_source[] =
+		{
+			"#version 330										\n\
+		\n\
+		void main() {\n\
+		const vec4 vertices[3] = vec4[3](vec4( 0.25, -0.25, 0.5, 1.0),\n\
+									   vec4(0.25, 0.25, 0.5, 1.0),\n\
+										vec4( -0.25,  -0.25, 0.5, 1.0));\n\
+		gl_Position = vertices[gl_VertexID];\n\
+		}"
+		};
+
+		//the fragment shader considers gl_PrimitiveID:
+
+		static const GLchar * fragment_shader_source[] =
+		{
+			"#version 330\n\
+			\n\
+			out vec4 color;\n\
+			\n\
+			void main() {\n\
+			const vec4 colors[6] = vec4[6]( vec4( 0.4, 0.0, .9, 1.0),\n\
+											vec4(0.25, 0.0, 0.8, 1.0),\n\
+											vec4( 0.5, 0.0, 0.8, 1.0),\n\
+											vec4(0.2, 0.0, 1.0, 1.0),\n\
+											vec4(0.5, 0.0, 1.0, 1.0),\n\
+											vec4( 0.3, 0.0, 0.5, 1.0));\n\
+			color = colors[gl_PrimitiveID];\n\
+			}" };
+
+
+		//in the geometry shader notice how gl_PrimitiveID is assigned before emitting each vertex
+
+		static const GLchar * geom_shader_source[] = {
+			"#version 330 \n\
+			uniform mat4 trans;\n\
+			layout(triangles) in;\n\
+			layout(triangle_strip, max_vertices = 24) out;\n\
+			void main()\n\
+			{\n\
+				const vec4 vertices[4] = vec4[4](vec4(1.41, -1.41, 1.41, 1.0),\n\
+										vec4(1.41, 1.41, 1.41, 1.0),\n\
+										vec4(-1.41, -1.41, 1.41, 1.0),\n\
+										vec4(-1.41, 1.41, 1.41, 1.0));\n\
+				\n\
+				//CARA 1\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = trans*vertices[i]+gl_in[0].gl_Position;\n\
+					gl_PrimitiveID = 0;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				\n\
+				//CARA 2\n\
+				const vec4 vertices2[4]= vec4[4](vec4(1.41, 1.41, 1.41, 1.0),\n\
+										vec4(1.41, 1.41, -1.41, 1.0),\n\
+										vec4(-1.41, 1.41, 1.41, 1.0),\n\
+										vec4(-1.41, 1.41, -1.41, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = trans*vertices2[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 1;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 3\n\
+				const vec4 vertices3[4]= vec4[4](vec4(-1.41, -1.41, 1.41, 1.0),\n\
+										vec4(-1.41, 1.41, 1.41, 1.0),\n\
+										vec4(-1.41, -1.41, -1.41, 1.0),\n\
+										vec4(-1.41, 1.41, -1.41, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = trans*vertices3[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 2;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 4\n\
+				const vec4 vertices4[4]= vec4[4](vec4(-1.41, -1.41, -1.41, 1.0),\n\
+										vec4(-1.41, 1.41, -1.41, 1.0),\n\
+										vec4(1.41, -1.41, -1.41, 1.0),\n\
+										vec4(1.41, 1.41, -1.41, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = trans*vertices4[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 3;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 5\n\
+				const vec4 vertices5[4]= vec4[4](vec4(-1.41, -1.41, 1.41, 1.0),\n\
+										vec4(-1.41, -1.41, -1.41, 1.0),\n\
+										vec4(1.41, -1.41, 1.41, 1.0),\n\
+										vec4(1.41, -1.41, -1.41, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = trans*vertices5[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 4;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+				//CARA 6\n\
+				const vec4 vertices6[4]= vec4[4](vec4(1.41, -1.41, -1.41, 1.0),\n\
+										vec4(1.41, 1.41, -1.41, 1.0),\n\
+										vec4(1.41, -1.41, 1.41, 1.0),\n\
+										vec4(1.41, 1.41, 1.41, 1.0));\n\
+				for (int i = 0; i<4; i++)\n\
+				{\n\
+					gl_Position = trans*vertices6[i]+gl_in[0].gl_Position;\n\
+				gl_PrimitiveID = 5;\n\
+					EmitVertex();\n\
+				}\n\
+				EndPrimitive();\n\
+			}"
+		};
+
+
+		GLuint vertex_shader;
+		GLuint fragment_shader;
+		GLuint geom_shader;
+		GLuint program;
+
+		vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(vertex_shader, 1, vertex_shader_source, NULL);
+		glCompileShader(vertex_shader);
+
+
+		fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(fragment_shader, 1, fragment_shader_source, NULL);
+		glCompileShader(fragment_shader);
+
+		geom_shader = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geom_shader, 1, geom_shader_source, NULL);
+		glCompileShader(geom_shader);
+
+		program = glCreateProgram();
+		glAttachShader(program, vertex_shader);
+		glAttachShader(program, fragment_shader);
+		glAttachShader(program, geom_shader);
+		glLinkProgram(program);
+
+		glDeleteShader(vertex_shader);
+		glDeleteShader(fragment_shader);
+		glDeleteShader(geom_shader);
+
+		return program;
+	}
+
+
+	void  myInitCode(void) {
+
+		myRenderProgram = myShaderCompile();
+		glCreateVertexArrays(1, &myVAO);
+		glBindVertexArray(myVAO);
+	}
+
+
+
+
+	void myRenderCode(double currentTime) {
+
+		glm::mat4 myTransformM = RV::_MVP;
+
+		glUseProgram(myRenderProgram);
+
+		glUniformMatrix4fv(glGetUniformLocation(myRenderProgram, "trans"), 1, GL_FALSE, glm::value_ptr(myTransformM));
+
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+
+	}
+
+
+
+
+
+	//5. Cleanup shader
+	void myCleanupCode(void) {
+		glDeleteVertexArrays(1, &myVAO);
+		glDeleteProgram(myRenderProgram);
+
+	}
 
 }
