@@ -80,13 +80,13 @@ namespace TrumpModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel();
+	void drawModel(float currentTime);
 }
 namespace PolloModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel();
+	void drawModel(float currentTime);
 }
 
 namespace CabinModel {
@@ -239,8 +239,8 @@ void GLrender(double currentTime) {
 
 	Sphere::updateSphere(lightPos, 1.0f);
 	Sphere::drawSphere();
-	TrumpModel::drawModel();
-	PolloModel::drawModel();
+	TrumpModel::drawModel(currentTime);
+	PolloModel::drawModel(currentTime);
 	CabinModel::drawModel(currentTime); 
 	MyFirstShader::myRenderCode(currentTime);
 
@@ -610,7 +610,7 @@ namespace CabinModel {
 		int numCab = 20;
 		
 		for (int i = 0; i < numCab; i++) {
-			glm::mat4 myObjMat = glm::translate(objMat, glm::vec3(r*(cos((6.26*currentTime/4 )+ ((6.26 / numCab)*i))), r*(sin((6.26*currentTime/4) + ((6.26 / numCab)*i))), 0.0));
+			glm::mat4 myObjMat = glm::translate(objMat, glm::vec3(r*(cos((6.26*currentTime/20 )+ ((6.26 / numCab)*i))), r*(sin((6.26*currentTime/20) + ((6.26 / numCab)*i))), 0.0));
 			myObjMat = glm::scale(myObjMat, glm::vec3(0.05,0.05,0.05));
 
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(myObjMat));
@@ -719,17 +719,26 @@ namespace PolloModel {
 	void updateModel(const glm::mat4& transform) {
 		objMat = transform;
 	}
-	void drawModel() {
+	void drawModel(float currentTime) {
 
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
-		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
-		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
-		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
-		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
-		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.8f, 0.4f, 0.0f, 0.f);
 
-		glDrawArrays(GL_TRIANGLES, 0, 100000);
+		float r = 200.0;
+		int numCab = 20;
+
+		for (int i = 0; i < numCab; i++) {
+			glm::mat4 myObjMat = glm::translate(objMat, glm::vec3(r*(cos((6.26*currentTime / 20) + ((6.26 / numCab)*i))) + 10, r*(sin((6.26*currentTime / 20) + ((6.26 / numCab)*i))) - 20, 0.0));
+			myObjMat = glm::scale(myObjMat, glm::vec3(0.2, 0.2, 0.2));
+			myObjMat = glm::rotate(myObjMat, -90.0f, glm::vec3(0.0, 1.0, 0.0));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(myObjMat));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
+			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
+			glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.8f, 0.4f, 0.0f, 0.f);
+
+			glDrawArrays(GL_TRIANGLES, 0, 100000);
+		}
 
 
 		glUseProgram(0);
@@ -827,19 +836,27 @@ namespace TrumpModel {
 	void updateModel(const glm::mat4& transform) {
 		objMat = transform;
 	}
-	void drawModel() {
+	void drawModel(float currentTime) {
 
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
-		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
-		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
-		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
-		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
-		glUniform4f(glGetUniformLocation(modelProgram, "color"), 1.0f, 0.2f, 0.0f, 0.f);
 
-		glDrawArrays(GL_TRIANGLES, 0, 100000);
+		float r = 200.0;
+		int numCab = 20;
 
+		for (int i = 0; i < numCab; i++) {
+			glm::mat4 myObjMat = glm::translate(objMat, glm::vec3(r*(cos((6.26*currentTime / 20) + ((6.26 / numCab)*i))) - 10, r*(sin((6.26*currentTime / 20) + ((6.26 / numCab)*i)) ) - 20, 0.0));
+			myObjMat = glm::scale(myObjMat, glm::vec3(0.1, 0.1, 0.1));
+			myObjMat = glm::rotate(myObjMat, 90.0f, glm::vec3(0.0,1.0,0.0));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(myObjMat));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
+			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
+			glUniform4f(glGetUniformLocation(modelProgram, "color"), 1.0f, 0.2f, 0.0f, 0.f);
 
+			glDrawArrays(GL_TRIANGLES, 0, 100000);
+
+		}
 		glUseProgram(0);
 		glBindVertexArray(0);
 

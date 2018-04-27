@@ -20,14 +20,14 @@ namespace TrumpModel {
 	extern void setupModel();
 	extern void cleanupModel();
 	extern void updateModel(const glm::mat4& transform);
-	extern void drawModel();
+	extern void drawModel(float currentTime);
 }
 
 namespace PolloModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel();
+	void drawModel(float currentTime);
 }
 
 namespace CabinModel {
@@ -57,7 +57,7 @@ void renderPrims() {
 		Sphere::drawSphere();
 
 	if (renderCube)
-		TrumpModel::drawModel();
-		PolloModel::drawModel();
+		TrumpModel::drawModel(0.33);
+		PolloModel::drawModel(0.33);
 		CabinModel::drawModel( 0.33);
 }
