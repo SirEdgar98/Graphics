@@ -3,19 +3,27 @@
 #include <glm\gtc\matrix_transform.hpp>
 #include <cstdio>
 #include <cassert>
-
+#include <math.h>
 #include "GL_framework.h"
 #include <vector>
 
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_sdl_gl3.h>
+
+#define TWO_PI 
 //variables to load an object:
-
-std::vector< glm::vec3 > vertices;
-std::vector< glm::vec2 > uvs;
-std::vector< glm::vec3 > normals;
-
-
+//Trump Vectors
+std::vector< glm::vec3 > TrumpVertices;
+std::vector< glm::vec2 > TrumpUvs;
+std::vector< glm::vec3 > TrumpNormals;
+//Pollo Vectors
+std::vector< glm::vec3 > PolloVertices;
+std::vector< glm::vec2 > PolloUvs;
+std::vector< glm::vec3 > PolloNormals;
+//Cabin Vectors
+std::vector< glm::vec3 > CabinVertices;
+std::vector< glm::vec2 > CabinUvs;
+std::vector< glm::vec3 > CabinNormals;
 glm::vec3 lightPos;
 
 
@@ -68,11 +76,24 @@ namespace Axis {
 	void drawAxis();
 }
 
-namespace MyLoadedModel {
+namespace TrumpModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
 	void drawModel();
+}
+namespace PolloModel {
+	void setupModel();
+	void cleanupModel();
+	void updateModel(const glm::mat4& transform);
+	void drawModel();
+}
+
+namespace CabinModel {
+	void setupModel();
+	void cleanupModel();
+	void updateModel(const glm::mat4& transform);
+	void drawModel(float currentTime);
 }
 
 namespace Sphere {
@@ -98,7 +119,7 @@ namespace MyFirstShader {
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
 	const float zNear = 1.f;
-	const float zFar = 500.f;
+	const float zFar = 10000000.0f;
 
 	glm::mat4 _projection;
 	glm::mat4 _modelView;
@@ -164,9 +185,13 @@ void GLinit(int width, int height) {
 	/*Box::setupCube();
 	Axis::setupAxis();*/
 
-	bool res = loadOBJ("felyne.obj", vertices, uvs, normals);
+	bool res = loadOBJ("trump.obj", TrumpVertices, TrumpUvs, TrumpNormals);
+	res = loadOBJ("pollo.obj", PolloVertices, PolloUvs, PolloNormals);
+	res = loadOBJ("wheel_cabin.obj", CabinVertices, CabinUvs, CabinNormals); 
+	TrumpModel::setupModel();
+	PolloModel::setupModel();
+	CabinModel::setupModel(); 
 
-	MyLoadedModel::setupModel();
 
 	lightPos = glm::vec3(40, 40, 0);
 
@@ -182,7 +207,9 @@ void GLinit(int width, int height) {
 void GLcleanup() {
 	/*Box::cleanupCube();
 	Axis::cleanupAxis();*/
-	MyLoadedModel::cleanupModel();
+	TrumpModel::cleanupModel();
+	PolloModel::cleanupModel();
+	CabinModel::cleanupModel();
 	Sphere::cleanupSphere();
 	MyFirstShader::myCleanupCode();
 
@@ -212,7 +239,9 @@ void GLrender(double currentTime) {
 
 	Sphere::updateSphere(lightPos, 1.0f);
 	Sphere::drawSphere();
-	MyLoadedModel::drawModel();
+	TrumpModel::drawModel();
+	PolloModel::drawModel();
+	CabinModel::drawModel(currentTime); 
 	MyFirstShader::myRenderCode(currentTime);
 
 
@@ -486,7 +515,7 @@ void main() {\n\
 }
 
 ////////////////////////////////////////////////// MyModel
-namespace MyLoadedModel {
+namespace CabinModel {
 	GLuint modelVao;
 	GLuint modelVbo[3];
 	GLuint modelShaders[2];
@@ -535,13 +564,130 @@ namespace MyLoadedModel {
 
 		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[0]);
 
-		glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, CabinVertices.size() * sizeof(glm::vec3), &CabinVertices[0], GL_STATIC_DRAW);
 		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[1]);
 
-		glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, CabinNormals.size() * sizeof(glm::vec3), &CabinNormals[0], GL_STATIC_DRAW);
+		glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+
+
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		modelShaders[0] = compileShader(model_vertShader, GL_VERTEX_SHADER, "cubeVert");
+		modelShaders[1] = compileShader(model_fragShader, GL_FRAGMENT_SHADER, "cubeFrag");
+
+		modelProgram = glCreateProgram();
+		glAttachShader(modelProgram, modelShaders[0]);
+		glAttachShader(modelProgram, modelShaders[1]);
+		glBindAttribLocation(modelProgram, 0, "in_Position");
+		glBindAttribLocation(modelProgram, 1, "in_Normal");
+		linkProgram(modelProgram);
+	}
+	void cleanupModel() {
+
+		glDeleteBuffers(2, modelVbo);
+		glDeleteVertexArrays(1, &modelVao);
+
+		glDeleteProgram(modelProgram);
+		glDeleteShader(modelShaders[0]);
+		glDeleteShader(modelShaders[1]);
+	}
+	void updateModel(const glm::mat4& transform) {
+		objMat = transform;
+	}
+	void drawModel(float currentTime) {
+		glBindVertexArray(modelVao);
+		glUseProgram(modelProgram);
+
+		float r = 200.0;
+		int numCab = 20;
+		
+		for (int i = 0; i < numCab; i++) {
+			glm::mat4 myObjMat = glm::translate(objMat, glm::vec3(r*(cos((6.26*currentTime/4 )+ ((6.26 / numCab)*i))), r*(sin((6.26*currentTime/4) + ((6.26 / numCab)*i))), 0.0));
+			myObjMat = glm::scale(myObjMat, glm::vec3(0.05,0.05,0.05));
+
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(myObjMat));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
+			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
+			glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.0f, 0.2f, 1.f, 0.f);
+
+			glDrawArrays(GL_TRIANGLES, 0, 100000);
+
+
+			
+		}
+		glUseProgram(0);
+		glBindVertexArray(0);
+
+	}
+
+
+}
+
+namespace PolloModel {
+	GLuint modelVao;
+	GLuint modelVbo[3];
+	GLuint modelShaders[2];
+	GLuint modelProgram;
+	glm::mat4 objMat = glm::mat4(1.f);
+
+
+
+	const char* model_vertShader =
+		"#version 330\n\
+	in vec3 in_Position;\n\
+	in vec3 in_Normal;\n\
+	uniform vec3 lPos;\n\
+	out vec3 lDir;\n\
+	out vec4 vert_Normal;\n\
+	uniform mat4 objMat;\n\
+	uniform mat4 mv_Mat;\n\
+	uniform mat4 mvpMat;\n\
+	void main() {\n\
+		gl_Position = mvpMat * objMat * vec4(in_Position, 1.0);\n\
+		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
+		lDir = normalize(lPos - gl_Position.xyz );\n\
+	}";
+
+
+	const char* model_fragShader =
+		"#version 330\n\
+		in vec4 vert_Normal;\n\
+		in vec3 lDir;\n\
+		out vec4 out_Color;\n\
+		uniform mat4 mv_Mat;\n\
+		uniform vec4 color;\n\
+		float kd = 0.5;\n\
+		void main() {\n\
+		float U = dot(vert_Normal, mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
+		if (U < 0.2) U = 0.1;\n\
+		if (U >= 0.3 && U < 0.5) U = 0.4;\n\
+		if (U >= 0.5 && U < 0.7) U = 0.6;\n\
+		if (U >= 0.9) U = 1.0;\n\
+			out_Color = vec4(color.xyz * U, 1.0 );\n\
+}";
+	void setupModel() {
+		glGenVertexArrays(1, &modelVao);
+		glBindVertexArray(modelVao);
+		glGenBuffers(3, modelVbo);
+
+		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[0]);
+
+		glBufferData(GL_ARRAY_BUFFER, PolloVertices.size() * sizeof(glm::vec3), &PolloVertices[0], GL_STATIC_DRAW);
+		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[1]);
+
+		glBufferData(GL_ARRAY_BUFFER, PolloNormals.size() * sizeof(glm::vec3), &PolloNormals[0], GL_STATIC_DRAW);
 		glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(1);
 
@@ -581,7 +727,115 @@ namespace MyLoadedModel {
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
-		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.5f, .5f, 1.f, 0.f);
+		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.8f, 0.4f, 0.0f, 0.f);
+
+		glDrawArrays(GL_TRIANGLES, 0, 100000);
+
+
+		glUseProgram(0);
+		glBindVertexArray(0);
+
+	}
+
+
+}
+
+namespace TrumpModel {
+	GLuint modelVao;
+	GLuint modelVbo[3];
+	GLuint modelShaders[2];
+	GLuint modelProgram;
+	glm::mat4 objMat = glm::mat4(1.f);
+
+
+
+	const char* model_vertShader =
+		"#version 330\n\
+	in vec3 in_Position;\n\
+	in vec3 in_Normal;\n\
+	uniform vec3 lPos;\n\
+	out vec3 lDir;\n\
+	out vec4 vert_Normal;\n\
+	uniform mat4 objMat;\n\
+	uniform mat4 mv_Mat;\n\
+	uniform mat4 mvpMat;\n\
+	void main() {\n\
+		gl_Position = mvpMat * objMat * vec4(in_Position, 1.0);\n\
+		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
+		lDir = normalize(lPos - gl_Position.xyz );\n\
+	}";
+
+
+	const char* model_fragShader =
+		"#version 330\n\
+		in vec4 vert_Normal;\n\
+		in vec3 lDir;\n\
+		out vec4 out_Color;\n\
+		uniform mat4 mv_Mat;\n\
+		uniform vec4 color;\n\
+		float kd = 0.5;\n\
+		void main() {\n\
+		float U = dot(vert_Normal, mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
+		if (U < 0.2) U = 0.1;\n\
+		if (U >= 0.3 && U < 0.5) U = 0.4;\n\
+		if (U >= 0.5 && U < 0.7) U = 0.6;\n\
+		if (U >= 0.9) U = 1.0;\n\
+			out_Color = vec4(color.xyz * U, 1.0 );\n\
+}";
+	void setupModel() {
+		glGenVertexArrays(1, &modelVao);
+		glBindVertexArray(modelVao);
+		glGenBuffers(3, modelVbo);
+
+		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[0]);
+
+		glBufferData(GL_ARRAY_BUFFER, TrumpVertices.size() * sizeof(glm::vec3), &TrumpVertices[0], GL_STATIC_DRAW);
+		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[1]);
+
+		glBufferData(GL_ARRAY_BUFFER, TrumpNormals.size() * sizeof(glm::vec3), &TrumpNormals[0], GL_STATIC_DRAW);
+		glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+
+
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		modelShaders[0] = compileShader(model_vertShader, GL_VERTEX_SHADER, "cubeVert");
+		modelShaders[1] = compileShader(model_fragShader, GL_FRAGMENT_SHADER, "cubeFrag");
+
+		modelProgram = glCreateProgram();
+		glAttachShader(modelProgram, modelShaders[0]);
+		glAttachShader(modelProgram, modelShaders[1]);
+		glBindAttribLocation(modelProgram, 0, "in_Position");
+		glBindAttribLocation(modelProgram, 1, "in_Normal");
+		linkProgram(modelProgram);
+	}
+	void cleanupModel() {
+
+		glDeleteBuffers(2, modelVbo);
+		glDeleteVertexArrays(1, &modelVao);
+
+		glDeleteProgram(modelProgram);
+		glDeleteShader(modelShaders[0]);
+		glDeleteShader(modelShaders[1]);
+	}
+	void updateModel(const glm::mat4& transform) {
+		objMat = transform;
+	}
+	void drawModel() {
+
+		glBindVertexArray(modelVao);
+		glUseProgram(modelProgram);
+		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
+		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
+		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform4f(glGetUniformLocation(modelProgram, "color"), 1.0f, 0.2f, 0.0f, 0.f);
 
 		glDrawArrays(GL_TRIANGLES, 0, 100000);
 

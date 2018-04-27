@@ -16,34 +16,48 @@ namespace Sphere {
 	extern void drawSphere();
 }
 
-
-
-namespace MyLoadedModel {
+namespace TrumpModel {
 	extern void setupModel();
 	extern void cleanupModel();
 	extern void updateModel(const glm::mat4& transform);
 	extern void drawModel();
 }
 
+namespace PolloModel {
+	void setupModel();
+	void cleanupModel();
+	void updateModel(const glm::mat4& transform);
+	void drawModel();
+}
+
+namespace CabinModel {
+	void setupModel();
+	void cleanupModel();
+	void updateModel(const glm::mat4& transform);
+	void drawModel(float currentTime);
+}
+
 void setupPrims() {
 	Sphere::setupSphere();
 
-	MyLoadedModel::setupModel();
+	TrumpModel::setupModel();
+	PolloModel::setupModel();
+	CabinModel::setupModel();
 }
 void cleanupPrims() {
 	Sphere::cleanupSphere();
 
-	MyLoadedModel::cleanupModel();
+	TrumpModel::cleanupModel();
+	PolloModel::cleanupModel();
+	CabinModel::cleanupModel();
 }
 
 void renderPrims() {
 	if (renderSphere)
 		Sphere::drawSphere();
 
-
-
-
-
 	if (renderCube)
-		MyLoadedModel::drawModel();
+		TrumpModel::drawModel();
+		PolloModel::drawModel();
+		CabinModel::drawModel( 0.33);
 }
