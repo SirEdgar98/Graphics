@@ -34,6 +34,13 @@ namespace CabinModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
+	void drawModel(float currentTime, glm::mat4 mat);
+}
+
+namespace NoriaBodyModel {
+	void setupModel();
+	void cleanupModel();
+	void updateModel(const glm::mat4& transform);
 	void drawModel(float currentTime);
 }
 
@@ -56,8 +63,8 @@ void renderPrims() {
 	if (renderSphere)
 		Sphere::drawSphere();
 
-	if (renderCube)
-		TrumpModel::drawModel(0.33);
-		PolloModel::drawModel(0.33);
-		CabinModel::drawModel( 0.33);
+	//if (renderCube)
+	//	TrumpModel::drawModel(0.33);
+	//	PolloModel::drawModel(0.33);
+	//	CabinModel::drawModel(0.33);
 }

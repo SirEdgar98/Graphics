@@ -6,6 +6,7 @@
 #include <math.h>
 #include "GL_framework.h"
 #include <vector>
+#include <iostream>
 
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_sdl_gl3.h>
@@ -24,6 +25,11 @@ std::vector< glm::vec3 > PolloNormals;
 std::vector< glm::vec3 > CabinVertices;
 std::vector< glm::vec2 > CabinUvs;
 std::vector< glm::vec3 > CabinNormals;
+//Noria BOdy Vectors
+std::vector< glm::vec3 > NoriaBodyVertices;
+std::vector< glm::vec2 > NoriaBodyUvs;
+std::vector< glm::vec3 > NoriaBodyNormals;
+
 glm::vec3 lightPos;
 
 
@@ -90,6 +96,13 @@ namespace PolloModel {
 }
 
 namespace CabinModel {
+	void setupModel();
+	void cleanupModel();
+	void updateModel(const glm::mat4& transform);
+	void drawModel(float currentTime);
+}
+
+namespace NoriaBodyModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
@@ -188,9 +201,11 @@ void GLinit(int width, int height) {
 	bool res = loadOBJ("trump.obj", TrumpVertices, TrumpUvs, TrumpNormals);
 	res = loadOBJ("pollo.obj", PolloVertices, PolloUvs, PolloNormals);
 	res = loadOBJ("wheel_cabin.obj", CabinVertices, CabinUvs, CabinNormals); 
+	res = loadOBJ("wheel.obj",NoriaBodyVertices,NoriaBodyUvs,NoriaBodyNormals);
 	TrumpModel::setupModel();
 	PolloModel::setupModel();
 	CabinModel::setupModel(); 
+	NoriaBodyModel::setupModel();
 
 
 	lightPos = glm::vec3(40, 40, 0);
@@ -210,6 +225,7 @@ void GLcleanup() {
 	TrumpModel::cleanupModel();
 	PolloModel::cleanupModel();
 	CabinModel::cleanupModel();
+	NoriaBodyModel::cleanupModel();
 	Sphere::cleanupSphere();
 	MyFirstShader::myCleanupCode();
 
@@ -225,25 +241,67 @@ void GLrender(double currentTime) {
 	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
 	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[0], glm::vec3(0.f, 1.f, 0.f));
 
-	RV::_MVP = RV::_projection * RV::_modelView;
 
-	// render code
-	/*Box::drawCube();
-	Axis::drawAxis();*/
+
 
 	if (light_moves)
 		lightPos = glm::vec3(0, 0, -20 * sin((float)currentTime));
 
-	
-
+	//Transform variables
+	float v = currentTime / 150;
+	float r = 170.0;
+	int numCab = 20;
+	glm::vec3 noriaScale = glm::vec3(0.03, 0.03, 0.03);
 
 	Sphere::updateSphere(lightPos, 1.0f);
 	Sphere::drawSphere();
-	TrumpModel::drawModel(currentTime);
-	PolloModel::drawModel(currentTime);
-	CabinModel::drawModel(currentTime); 
-	MyFirstShader::myRenderCode(currentTime);
 
+
+	
+	for (int i = 0; i < numCab; i++) {
+		glm::mat4 noriaMat = glm::translate(glm::mat4(1.f), glm::vec3(r*(cos((6.26 * v) + ((6.26 / numCab)*i))), r*(sin((6.26*v) + ((6.26 / numCab)*i))), 0.0));
+		noriaMat = glm::translate(noriaMat, glm::vec3(0.0, -5.0, 0.0));
+	
+		
+		if (i == 1) {
+
+			glm::mat4 polloMat = glm::translate(noriaMat, glm::vec3(6.0,-10.0,0.0));
+			glm::mat4 trumpMat = glm::translate(noriaMat, glm::vec3(-5.0, -10.0, 0.0));
+
+			polloMat = glm::rotate(polloMat, -90.f, glm::vec3(0.0, 1.0, 0.0));
+			trumpMat = glm::rotate(trumpMat, 90.f, glm::vec3(0.0, 1.0, 0.0));
+
+			polloMat = glm::scale(polloMat, glm::vec3(0.1, 0.1, 0.1));
+			trumpMat = glm::scale(trumpMat, glm::vec3(0.05, 0.05, 0.05));
+
+
+			PolloModel::updateModel(polloMat);
+			TrumpModel::updateModel(trumpMat);
+
+			glm::vec3 polloLoc = glm::vec3(polloMat[2][0], polloMat[2][1], polloMat[2][2]);
+			glm::vec3 trumpLoc = glm::vec3(trumpMat[2][0], trumpMat[2][1], trumpMat[2][2]);
+
+			RV::_modelView = glm::lookAt(glm::vec3(80.0, 120.0, -300.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0));
+			RV::_MVP = RV::_projection * RV::_modelView;
+
+			PolloModel::drawModel(currentTime);
+			TrumpModel::drawModel(currentTime);
+		}
+
+		
+		noriaMat = glm::scale(noriaMat, noriaScale);
+		CabinModel::updateModel(noriaMat);
+		CabinModel::drawModel(currentTime);
+	
+	}
+
+	
+		glm::mat4 noriaMat = glm::rotate(glm::mat4(1.f), (float)(6.26f * v), glm::vec3(0.0, 0.0, 1.0));
+		noriaMat = glm::scale(noriaMat, noriaScale);
+
+	NoriaBodyModel::updateModel(noriaMat);
+	NoriaBodyModel::drawModel(currentTime);
+	MyFirstShader::myRenderCode(currentTime);
 
 
 	ImGui::Render();
@@ -605,15 +663,10 @@ namespace CabinModel {
 	void drawModel(float currentTime) {
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
-
-		float r = 200.0;
-		int numCab = 20;
 		
-		for (int i = 0; i < numCab; i++) {
-			glm::mat4 myObjMat = glm::translate(objMat, glm::vec3(r*(cos((6.26*currentTime/20 )+ ((6.26 / numCab)*i))), r*(sin((6.26*currentTime/20) + ((6.26 / numCab)*i))), 0.0));
-			myObjMat = glm::scale(myObjMat, glm::vec3(0.05,0.05,0.05));
+		
 
-			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(myObjMat));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
@@ -622,8 +675,120 @@ namespace CabinModel {
 			glDrawArrays(GL_TRIANGLES, 0, 100000);
 
 
-			
-		}
+
+		glUseProgram(0);
+		glBindVertexArray(0);
+
+	}
+
+
+}
+
+namespace NoriaBodyModel {
+	GLuint modelVao;
+	GLuint modelVbo[3];
+	GLuint modelShaders[2];
+	GLuint modelProgram;
+	glm::mat4 objMat = glm::mat4(1.f);
+
+
+
+	const char* model_vertShader =
+		"#version 330\n\
+	in vec3 in_Position;\n\
+	in vec3 in_Normal;\n\
+	uniform vec3 lPos;\n\
+	out vec3 lDir;\n\
+	out vec4 vert_Normal;\n\
+	uniform mat4 objMat;\n\
+	uniform mat4 mv_Mat;\n\
+	uniform mat4 mvpMat;\n\
+	void main() {\n\
+		gl_Position = mvpMat * objMat * vec4(in_Position, 1.0);\n\
+		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
+		lDir = normalize(lPos - gl_Position.xyz );\n\
+	}";
+
+
+	const char* model_fragShader =
+		"#version 330\n\
+		in vec4 vert_Normal;\n\
+		in vec3 lDir;\n\
+		out vec4 out_Color;\n\
+		uniform mat4 mv_Mat;\n\
+		uniform vec4 color;\n\
+		float kd = 0.5;\n\
+		void main() {\n\
+		float U = dot(vert_Normal, mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
+		if (U < 0.2) U = 0.1;\n\
+		if (U >= 0.3 && U < 0.5) U = 0.4;\n\
+		if (U >= 0.5 && U < 0.7) U = 0.6;\n\
+		if (U >= 0.9) U = 1.0;\n\
+			out_Color = vec4(color.xyz * U, 1.0 );\n\
+}";
+	void setupModel() {
+		glGenVertexArrays(1, &modelVao);
+		glBindVertexArray(modelVao);
+		glGenBuffers(3, modelVbo);
+
+		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[0]);
+
+		glBufferData(GL_ARRAY_BUFFER, NoriaBodyVertices.size() * sizeof(glm::vec3), &NoriaBodyVertices[0], GL_STATIC_DRAW);
+		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[1]);
+
+		glBufferData(GL_ARRAY_BUFFER, NoriaBodyNormals.size() * sizeof(glm::vec3), &NoriaBodyNormals[0], GL_STATIC_DRAW);
+		glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+
+
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		modelShaders[0] = compileShader(model_vertShader, GL_VERTEX_SHADER, "cubeVert");
+		modelShaders[1] = compileShader(model_fragShader, GL_FRAGMENT_SHADER, "cubeFrag");
+
+		modelProgram = glCreateProgram();
+		glAttachShader(modelProgram, modelShaders[0]);
+		glAttachShader(modelProgram, modelShaders[1]);
+		glBindAttribLocation(modelProgram, 0, "in_Position");
+		glBindAttribLocation(modelProgram, 1, "in_Normal");
+		linkProgram(modelProgram);
+	}
+	void cleanupModel() {
+
+		glDeleteBuffers(2, modelVbo);
+		glDeleteVertexArrays(1, &modelVao);
+
+		glDeleteProgram(modelProgram);
+		glDeleteShader(modelShaders[0]);
+		glDeleteShader(modelShaders[1]);
+	}
+	void updateModel(const glm::mat4& transform) {
+		objMat = transform;
+	}
+	void drawModel(float currentTime) {
+		glBindVertexArray(modelVao);
+		glUseProgram(modelProgram);
+
+
+
+	
+
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
+			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
+			glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.0f, 0.2f, 1.f, 0.f);
+
+			glDrawArrays(GL_TRIANGLES, 0, 10000000);
+
+
+
 		glUseProgram(0);
 		glBindVertexArray(0);
 
@@ -724,30 +889,24 @@ namespace PolloModel {
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
 
-		float r = 200.0;
-		int numCab = 20;
 
-		for (int i = 0; i < numCab; i++) {
-			glm::mat4 myObjMat = glm::translate(objMat, glm::vec3(r*(cos((6.26*currentTime / 20) + ((6.26 / numCab)*i))) + 10, r*(sin((6.26*currentTime / 20) + ((6.26 / numCab)*i))) - 20, 0.0));
-			myObjMat = glm::scale(myObjMat, glm::vec3(0.2, 0.2, 0.2));
-			myObjMat = glm::rotate(myObjMat, -90.0f, glm::vec3(0.0, 1.0, 0.0));
-			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(myObjMat));
-			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
-			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
-			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
-			glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.8f, 0.4f, 0.0f, 0.f);
+		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
+		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
+		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.8f, 0.4f, 0.0f, 0.f);
 
-			glDrawArrays(GL_TRIANGLES, 0, 100000);
-		}
+		glDrawArrays(GL_TRIANGLES, 0, 100000);
+
 
 
 		glUseProgram(0);
 		glBindVertexArray(0);
 
 	}
-
-
 }
+
+
 
 namespace TrumpModel {
 	GLuint modelVao;
@@ -841,14 +1000,8 @@ namespace TrumpModel {
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
 
-		float r = 200.0;
-		int numCab = 20;
-
-		for (int i = 0; i < numCab; i++) {
-			glm::mat4 myObjMat = glm::translate(objMat, glm::vec3(r*(cos((6.26*currentTime / 20) + ((6.26 / numCab)*i))) - 10, r*(sin((6.26*currentTime / 20) + ((6.26 / numCab)*i)) ) - 20, 0.0));
-			myObjMat = glm::scale(myObjMat, glm::vec3(0.1, 0.1, 0.1));
-			myObjMat = glm::rotate(myObjMat, 90.0f, glm::vec3(0.0,1.0,0.0));
-			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(myObjMat));
+		
+			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
@@ -856,7 +1009,7 @@ namespace TrumpModel {
 
 			glDrawArrays(GL_TRIANGLES, 0, 100000);
 
-		}
+		
 		glUseProgram(0);
 		glBindVertexArray(0);
 
