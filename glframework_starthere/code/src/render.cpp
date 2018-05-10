@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cassert>
 #include <math.h>
+#include <ctime>
 #include "GL_framework.h"
 #include <vector>
 #include <iostream>
@@ -39,6 +40,21 @@ extern bool loadOBJ(const char * path,
 	std::vector < glm::vec3 > & out_normals
 );
 
+float toRadians(float d) { return d * 3.14 / 180.0; }
+enum class cameraPlane
+{
+	GENERAL_SHOT,
+	COUNTER_SHOT,
+	LATERAL_SHOT,
+	GODS_EYE_SHOT
+};
+
+int currentCameraCounter = 0;
+cameraPlane currentCamera = cameraPlane::GENERAL_SHOT;
+
+float transitionTime = 2.0;
+float nextTime = clock() + transitionTime * 1000; 
+bool trumpFocus = true;
 
 
 bool show_test_window = false;
@@ -59,6 +75,21 @@ void GUI() {
 
 		}
 
+		if (ImGui::Button("Camera")) {
+			currentCameraCounter++;
+			currentCameraCounter %= 4;
+
+			switch (currentCameraCounter)
+			{
+			case 0: currentCamera = cameraPlane::GENERAL_SHOT; break;
+			case 1: currentCamera = cameraPlane::COUNTER_SHOT; break;
+			case 2: currentCamera = cameraPlane::LATERAL_SHOT; break;
+			case 3: currentCamera = cameraPlane::GODS_EYE_SHOT; break;
+
+
+			}
+
+		}
 
 	}
 	// .........................
@@ -131,8 +162,8 @@ namespace MyFirstShader {
 
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
-	const float zNear = 1.f;
-	const float zFar = 10000000.0f;
+	float zNear = 1.f;
+	const float zFar = 100000.0f;
 
 	glm::mat4 _projection;
 	glm::mat4 _modelView;
@@ -253,8 +284,7 @@ void GLrender(double currentTime) {
 	int numCab = 20;
 	glm::vec3 noriaScale = glm::vec3(0.03, 0.03, 0.03);
 
-	Sphere::updateSphere(lightPos, 1.0f);
-	Sphere::drawSphere();
+	
 
 
 	
@@ -263,13 +293,15 @@ void GLrender(double currentTime) {
 		noriaMat = glm::translate(noriaMat, glm::vec3(0.0, -5.0, 0.0));
 	
 		
-		if (i == 1) {
+		if (i == 0) {
 
 			glm::mat4 polloMat = glm::translate(noriaMat, glm::vec3(6.0,-10.0,0.0));
 			glm::mat4 trumpMat = glm::translate(noriaMat, glm::vec3(-5.0, -10.0, 0.0));
 
-			polloMat = glm::rotate(polloMat, -90.f, glm::vec3(0.0, 1.0, 0.0));
-			trumpMat = glm::rotate(trumpMat, 90.f, glm::vec3(0.0, 1.0, 0.0));
+			polloMat = glm::rotate(polloMat, toRadians(-90.0), glm::vec3(0.0, 1.0, 0.0));
+			trumpMat = glm::rotate(trumpMat, toRadians(90.0), glm::vec3(0.0, 1.0, 0.0));
+			
+			
 
 			polloMat = glm::scale(polloMat, glm::vec3(0.1, 0.1, 0.1));
 			trumpMat = glm::scale(trumpMat, glm::vec3(0.05, 0.05, 0.05));
@@ -278,10 +310,54 @@ void GLrender(double currentTime) {
 			PolloModel::updateModel(polloMat);
 			TrumpModel::updateModel(trumpMat);
 
-			glm::vec3 polloLoc = glm::vec3(polloMat[2][0], polloMat[2][1], polloMat[2][2]);
-			glm::vec3 trumpLoc = glm::vec3(trumpMat[2][0], trumpMat[2][1], trumpMat[2][2]);
+			glm::vec3 polloLoc = glm::vec3(polloMat[3][0], polloMat[3][1], polloMat[3][2]);
+			glm::vec3 trumpLoc = glm::vec3(trumpMat[3][0], trumpMat[3][1], trumpMat[3][2]);
+			glm::vec3 polloOfsset = glm::vec3(-4.0, 5.0, 3.0);
+			glm::vec3 trumpOfsset = glm::vec3(3.0, 3.0, 3.0);
+			glm::vec3 upOfssetTrump = glm::vec3(0.0, 8.0, 0.0);
+			glm::vec3 upOfssetPollo = glm::vec3(0.0, 5.0, 0.0);
 
-			RV::_modelView = glm::lookAt(glm::vec3(80.0, 120.0, -300.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0));
+
+
+			glm::vec3 cabinLoc = glm::vec3(noriaMat[3][0], noriaMat[3][1], noriaMat[3][2]);
+			glm::vec3 cabinOffset = glm::vec3(0.0, 10.0, 0.001);
+
+
+			if (clock() > nextTime)
+			{
+
+				if (trumpFocus)
+					trumpFocus = false;
+				else
+					trumpFocus = true;
+				nextTime = clock() + transitionTime * 1000;
+				
+			}
+
+			switch (currentCamera) {
+				//Camara de lejos
+			case cameraPlane::GENERAL_SHOT:
+				RV::_modelView = glm::lookAt(glm::vec3(350.0, 50.0, -180.0), glm::vec3(60.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0));
+				break;
+
+				//Camara de cerca
+			case cameraPlane::COUNTER_SHOT:
+				if(trumpFocus)
+				RV::_modelView = glm::lookAt(polloLoc + polloOfsset, trumpLoc + upOfssetTrump, glm::vec3(0.0, 1.0, 0));
+				else
+				RV::_modelView = glm::lookAt(trumpLoc + trumpOfsset, polloLoc + upOfssetPollo, glm::vec3(0.0, 1.0, 0));
+				break;
+
+			case cameraPlane::LATERAL_SHOT:
+				RV::_modelView = glm::lookAt(glm::vec3(0.0, 0.0, -350.0), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0));
+				break;
+
+			case cameraPlane::GODS_EYE_SHOT:
+				RV::_modelView = glm::lookAt(cabinLoc + cabinOffset, cabinLoc - cabinOffset, glm::vec3(sin(currentTime), 0.0, cos(currentTime)));
+				break;
+
+			}
+
 			RV::_MVP = RV::_projection * RV::_modelView;
 
 			PolloModel::drawModel(currentTime);
@@ -301,6 +377,8 @@ void GLrender(double currentTime) {
 
 	NoriaBodyModel::updateModel(noriaMat);
 	NoriaBodyModel::drawModel(currentTime);
+	Sphere::updateSphere(lightPos, 1.0f);
+	Sphere::drawSphere();
 	MyFirstShader::myRenderCode(currentTime);
 
 

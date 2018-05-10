@@ -34,7 +34,7 @@ namespace CabinModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(float currentTime, glm::mat4 mat);
+	void drawModel(float currentTime);
 }
 
 namespace NoriaBodyModel {
