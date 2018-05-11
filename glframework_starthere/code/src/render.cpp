@@ -31,7 +31,10 @@ std::vector< glm::vec3 > NoriaBodyVertices;
 std::vector< glm::vec2 > NoriaBodyUvs;
 std::vector< glm::vec3 > NoriaBodyNormals;
 
+
+//Light Variables // Sun
 glm::vec3 lightPos;
+float lightRadius = 10.0f;
 
 
 extern bool loadOBJ(const char * path,
@@ -64,15 +67,12 @@ bool light_moves = true;
 void GUI() {
 	bool show = true;
 	ImGui::Begin("Simulation Parameters", &show, 0);
-
-	// Do your GUI code here....
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 
 
 		if (ImGui::Button("Toggle Light Move")) {
 			light_moves = !light_moves;
-
 		}
 
 		if (ImGui::Button("Camera")) {
@@ -85,8 +85,6 @@ void GUI() {
 			case 1: currentCamera = cameraPlane::COUNTER_SHOT; break;
 			case 2: currentCamera = cameraPlane::LATERAL_SHOT; break;
 			case 3: currentCamera = cameraPlane::GODS_EYE_SHOT; break;
-
-
 			}
 
 		}
@@ -274,18 +272,16 @@ void GLrender(double currentTime) {
 
 
 
-
+	//Sun Movement
 	if (light_moves)
-		lightPos = glm::vec3(0, 0, -20 * sin((float)currentTime));
+		lightPos = glm::vec3(0.0, 300 * cos((float)currentTime), 300 * sin((float)currentTime));
+
 
 	//Transform variables
 	float v = currentTime / 150;
 	float r = 170.0;
 	int numCab = 20;
 	glm::vec3 noriaScale = glm::vec3(0.03, 0.03, 0.03);
-
-	
-
 
 	
 	for (int i = 0; i < numCab; i++) {
@@ -377,7 +373,7 @@ void GLrender(double currentTime) {
 
 	NoriaBodyModel::updateModel(noriaMat);
 	NoriaBodyModel::drawModel(currentTime);
-	Sphere::updateSphere(lightPos, 1.0f);
+	Sphere::updateSphere(lightPos, lightRadius);
 	Sphere::drawSphere();
 	MyFirstShader::myRenderCode(currentTime);
 
@@ -854,14 +850,11 @@ namespace NoriaBodyModel {
 		glUseProgram(modelProgram);
 
 
-
-	
-
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
-			glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.0f, 0.2f, 1.f, 0.f);
+			glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.5f, 0.1f, 0.6f, 0.f);
 
 			glDrawArrays(GL_TRIANGLES, 0, 10000000);
 
