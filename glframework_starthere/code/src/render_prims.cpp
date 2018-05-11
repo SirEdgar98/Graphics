@@ -20,43 +20,50 @@ namespace TrumpModel {
 	extern void setupModel();
 	extern void cleanupModel();
 	extern void updateModel(const glm::mat4& transform);
-	extern void drawModel(float currentTime);
+	extern void drawModel(glm::vec3 color);
 }
 
 namespace PolloModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(float currentTime);
+	void drawModel(glm::vec3 color);
 }
 
 namespace CabinModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(float currentTime);
+	void drawModel(glm::vec3 color);
 }
 
 namespace NoriaBodyModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(float currentTime);
+	void drawModel(glm::vec3 color);
+}
+
+namespace NoriaLegsModel {
+	void setupModel();
+	void cleanupModel();
+	void updateModel(const glm::mat4& transform);
+	void drawModel(glm::vec3 color);
 }
 
 void setupPrims() {
 	Sphere::setupSphere();
-
 	TrumpModel::setupModel();
 	PolloModel::setupModel();
 	CabinModel::setupModel();
+	NoriaLegsModel::setupModel();
 }
 void cleanupPrims() {
 	Sphere::cleanupSphere();
-
 	TrumpModel::cleanupModel();
 	PolloModel::cleanupModel();
 	CabinModel::cleanupModel();
+	NoriaLegsModel::cleanupModel();
 }
 
 void renderPrims() {
