@@ -36,9 +36,14 @@ std::vector< glm::vec2 > NoriaLegsUvs;
 std::vector< glm::vec3 > NoriaLegsNormals;
 
 
-//Light Variables // Sun
+//Light Variables 
+// Sun
 glm::vec3 lightPos;
 float lightRadius = 10.0f;
+//Inside Cabin Light
+glm::vec3 inCabinlightPos;
+float inCabinlightRadius = 1.0;
+
 
 
 extern bool loadOBJ(const char * path,
@@ -63,7 +68,8 @@ namespace colors {
 	glm::vec3 blue = glm::vec3(0.0, 0.1, 0.7);
 	glm::vec3 orange = glm::vec3(0.8, 0.4, 0.0);
 	glm::vec3 yellow = glm::vec3(0.8, 0.8, 0.0);
-
+	glm::vec3 sunlight = glm::vec3(0.5, 0.5, 0.5);
+	glm::vec3 moonlight = glm::vec3(0.5, 0.5, 0.5);
 
 }
 
@@ -130,35 +136,35 @@ namespace TrumpModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(glm::vec3 color);
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
 namespace PolloModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(glm::vec3 color);
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
 namespace CabinModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(glm::vec3 color);
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
 namespace NoriaBodyModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(glm::vec3 color);
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
 namespace NoriaLegsModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(glm::vec3 color);
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
 namespace Sphere {
@@ -247,8 +253,6 @@ void GLinit(int width, int height) {
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
 
 	// Setup shaders & geometry
-	/*Box::setupCube();
-	Axis::setupAxis();*/
 
 	bool res = loadOBJ("trump.obj", TrumpVertices, TrumpUvs, TrumpNormals);
 	res = loadOBJ("pollo.obj", PolloVertices, PolloUvs, PolloNormals);
@@ -262,9 +266,6 @@ void GLinit(int width, int height) {
 	NoriaBodyModel::setupModel();
 	NoriaLegsModel::setupModel();
 
-
-	//lightPos = glm::vec3(40, 40, 0);
-
 	Sphere::setupSphere(lightPos, 1.0f);
 
 	MyFirstShader::myInitCode();
@@ -275,8 +276,6 @@ void GLinit(int width, int height) {
 }
 
 void GLcleanup() {
-	/*Box::cleanupCube();
-	Axis::cleanupAxis();*/
 	TrumpModel::cleanupModel();
 	PolloModel::cleanupModel();
 	CabinModel::cleanupModel();
@@ -284,7 +283,6 @@ void GLcleanup() {
 	NoriaLegsModel::cleanupModel();
 	Sphere::cleanupSphere();
 	MyFirstShader::myCleanupCode();
-
 
 }
 
@@ -306,31 +304,31 @@ void GLrender(double currentTime) {
 	glm::vec3 noriaScale = glm::vec3(0.03, 0.03, 0.03);
 	glm::vec3 legsScale = glm::vec3(0.03, 0.03, 0.03);
 
-
-
 	//Sun Movement
 	if (light_moves)
 		lightPos = glm::vec3(0.0, sunRad * cos(sunVel) - r, sunRad * sin(sunVel));
+	//Light Color change with sun movement
+	//colors::light = 
 
 	
 	for (int i = 0; i < numCab; i++) {
 		glm::mat4 noriaMat = glm::translate(glm::mat4(1.f), glm::vec3(r*(cos((6.26 * v) + ((6.26 / numCab)*i))), r*(sin((6.26*v) + ((6.26 / numCab)*i))), 0.0));
 		noriaMat = glm::translate(noriaMat, glm::vec3(0.0, -5.0, 0.0));
-	
 		
 		if (i == 0) {
 
+			inCabinlightPos = glm::vec3(noriaMat[3][0], noriaMat[3][1], noriaMat[3][2] + 7*sin(currentTime));
+			
+
+			//Set Trump and Pollo in cabin position
 			glm::mat4 polloMat = glm::translate(noriaMat, glm::vec3(6.0,-10.0,0.0));
 			glm::mat4 trumpMat = glm::translate(noriaMat, glm::vec3(-5.0, -10.0, 0.0));
 
 			polloMat = glm::rotate(polloMat, toRadians(-90.0), glm::vec3(0.0, 1.0, 0.0));
 			trumpMat = glm::rotate(trumpMat, toRadians(90.0), glm::vec3(0.0, 1.0, 0.0));
 			
-			
-
 			polloMat = glm::scale(polloMat, glm::vec3(0.1, 0.1, 0.1));
 			trumpMat = glm::scale(trumpMat, glm::vec3(0.05, 0.05, 0.05));
-
 
 			PolloModel::updateModel(polloMat);
 			TrumpModel::updateModel(trumpMat);
@@ -342,10 +340,8 @@ void GLrender(double currentTime) {
 			glm::vec3 upOfssetTrump = glm::vec3(0.0, 8.0, 0.0);
 			glm::vec3 upOfssetPollo = glm::vec3(0.0, 5.0, 0.0);
 
-
-
 			glm::vec3 cabinLoc = glm::vec3(noriaMat[3][0], noriaMat[3][1], noriaMat[3][2]);
-			glm::vec3 cabinOffset = glm::vec3(0.0, 10.0, 0.001);
+			glm::vec3 cabinOffset = glm::vec3(0.0, 9.0, 0.001);
 
 
 			if (clock() > nextTime)
@@ -385,14 +381,14 @@ void GLrender(double currentTime) {
 
 			RV::_MVP = RV::_projection * RV::_modelView;
 
-			PolloModel::drawModel(colors::orange);
-			TrumpModel::drawModel(colors::yellow);
+			PolloModel::drawModel(colors::orange,colors::sunlight);
+			TrumpModel::drawModel(colors::yellow, colors::sunlight);
 		}
 
 		
 		noriaMat = glm::scale(noriaMat, noriaScale);
 		CabinModel::updateModel(noriaMat);
-		CabinModel::drawModel(colors::red);
+		CabinModel::drawModel(colors::red, colors::sunlight);
 	
 	}
 
@@ -404,7 +400,7 @@ void GLrender(double currentTime) {
 		noriaMat = glm::scale(noriaMat, noriaScale);
 
 	NoriaBodyModel::updateModel(noriaMat);
-	NoriaBodyModel::drawModel(colors::red);
+	NoriaBodyModel::drawModel(colors::red, colors::sunlight);
 
 	glm::mat4 legsMat = glm::mat4(1.f);
 	legsMat = glm::translate(legsMat, glm::vec3(0.0, -r/2, 0.0));
@@ -413,12 +409,15 @@ void GLrender(double currentTime) {
 	
 
 	NoriaLegsModel::updateModel(legsMat);
-	NoriaLegsModel::drawModel(colors::red);
+	NoriaLegsModel::drawModel(colors::red,colors::sunlight);
 	
+	//Sun sphere
 	Sphere::updateSphere(lightPos, lightRadius);
 	Sphere::drawSphere();
+	//Inside cabin sphere
+	Sphere::updateSphere(inCabinlightPos, inCabinlightRadius);
+	Sphere::drawSphere();
 	MyFirstShader::myRenderCode(currentTime);
-
 
 	ImGui::Render();
 }
@@ -697,21 +696,24 @@ namespace CabinModel {
 	glm::mat4 objMat = glm::mat4(1.f);
 
 
-
 	const char* model_vertShader =
 		"#version 330\n\
 	in vec3 in_Position;\n\
 	in vec3 in_Normal;\n\
 	uniform vec3 lPos;\n\
+	uniform vec3 inlPos;\n\
 	out vec3 lDir;\n\
+	out vec3 inlDir;\n\
 	out vec4 vert_Normal;\n\
 	uniform mat4 objMat;\n\
 	uniform mat4 mv_Mat;\n\
 	uniform mat4 mvpMat;\n\
 	void main() {\n\
-		gl_Position = mvpMat * objMat * vec4(in_Position, 1.0);\n\
+		vec4 worldPos =  objMat * vec4(in_Position, 1.0);\n\
+		gl_Position = mvpMat * worldPos;\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
-		lDir = normalize(lPos - gl_Position.xyz );\n\
+		lDir = normalize(lPos - worldPos.xyz);\n\
+		inlDir = normalize(inlPos - worldPos.xyz);\n\
 	}";
 
 
@@ -719,14 +721,20 @@ namespace CabinModel {
 		"#version 330\n\
 		in vec4 vert_Normal;\n\
 		in vec3 lDir;\n\
+		in vec3 inlDir;\n\
 		out vec4 out_Color;\n\
 		uniform mat4 mv_Mat;\n\
 		uniform vec4 color;\n\
-		float kd = 0.5;\n\
+		uniform vec3 lightColor;\n\
 		void main() {\n\
-				out_Color = vec4(color.xyz * dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) + color.xyz * vec3(0.3,0.3,0.3),1.0);\n\
+			out_Color =  vec4(color.xyz * \n\
+				(lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) +\n\
+				lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(inlDir.x, inlDir.y, inlDir.z, 0.0)) +\n\
+				vec3(0.0, 0.0, 0.0)), 1.0);\n\
 }";
 	void setupModel() {
+
+
 		glGenVertexArrays(1, &modelVao);
 		glBindVertexArray(modelVao);
 		glGenBuffers(3, modelVbo);
@@ -771,7 +779,7 @@ namespace CabinModel {
 	void updateModel(const glm::mat4& transform) {
 		objMat = transform;
 	}
-	void drawModel(glm::vec3 color) {
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor) {
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
 		
@@ -781,7 +789,9 @@ namespace CabinModel {
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
+			glUniform3f(glGetUniformLocation(modelProgram, "inlPos"), inCabinlightPos.x, inCabinlightPos.y, inCabinlightPos.z);
 			glUniform4f(glGetUniformLocation(modelProgram, "color"), color.r, color.g, color.b, 0.f);
+			glUniform3f(glGetUniformLocation(modelProgram, "lightColor"), lightcolor.r, lightcolor.g, lightcolor.b); 
 
 			glDrawArrays(GL_TRIANGLES, 0, 100000);
 
@@ -828,9 +838,9 @@ namespace NoriaBodyModel {
 		out vec4 out_Color;\n\
 		uniform mat4 mv_Mat;\n\
 		uniform vec4 color;\n\
-		float kd = 0.5;\n\
+		uniform vec3 lightColor;\n\
 		void main() {\n\
-		out_Color = vec4(color.xyz * dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) , 1.0 );\n\
+		out_Color = vec4(color.xyz * lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) , 1.0 );\n\
 }";
 	void setupModel() {
 		glGenVertexArrays(1, &modelVao);
@@ -877,7 +887,7 @@ namespace NoriaBodyModel {
 	void updateModel(const glm::mat4& transform) {
 		objMat = transform;
 	}
-	void drawModel(glm::vec3 color) {
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor) {
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
 
@@ -887,6 +897,7 @@ namespace NoriaBodyModel {
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 			glUniform4f(glGetUniformLocation(modelProgram, "color"), color.r, color.g, color.b, 0.f);
+			glUniform3f(glGetUniformLocation(modelProgram, "lightColor"), lightcolor.r, lightcolor.g, lightcolor.b);
 
 			glDrawArrays(GL_TRIANGLES, 0, 10000000);
 
@@ -933,9 +944,9 @@ namespace NoriaLegsModel {
 		out vec4 out_Color;\n\
 		uniform mat4 mv_Mat;\n\
 		uniform vec4 color;\n\
-		float kd = 0.5;\n\
+		uniform vec3 lightColor;\n\
 		void main() {\n\
-		out_Color = vec4(color.xyz * dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) , 1.0 );\n\
+		out_Color = vec4(color.xyz * lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) , 1.0 );\n\
 }";
 	void setupModel() {
 		glGenVertexArrays(1, &modelVao);
@@ -982,7 +993,7 @@ namespace NoriaLegsModel {
 	void updateModel(const glm::mat4& transform) {
 		objMat = transform;
 	}
-	void drawModel(glm::vec3 color) {
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor) {
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
 
@@ -992,6 +1003,7 @@ namespace NoriaLegsModel {
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), color.r, color.g, color.b, 0.f);
+		glUniform3f(glGetUniformLocation(modelProgram, "lightColor"), lightcolor.r, lightcolor.g, lightcolor.b);
 
 		glDrawArrays(GL_TRIANGLES, 0, 100000);
 
@@ -1019,15 +1031,19 @@ namespace PolloModel {
 	in vec3 in_Position;\n\
 	in vec3 in_Normal;\n\
 	uniform vec3 lPos;\n\
+	uniform vec3 inlPos;\n\
 	out vec3 lDir;\n\
+	out vec3 inlDir;\n\
 	out vec4 vert_Normal;\n\
 	uniform mat4 objMat;\n\
 	uniform mat4 mv_Mat;\n\
 	uniform mat4 mvpMat;\n\
 	void main() {\n\
-		gl_Position = mvpMat * objMat * vec4(in_Position, 1.0);\n\
+		vec4 worldPos =  objMat * vec4(in_Position, 1.0);\n\
+		gl_Position = mvpMat * worldPos;\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
-		lDir = normalize(lPos - gl_Position.xyz );\n\
+		lDir = normalize(lPos - worldPos.xyz);\n\
+		inlDir = normalize(inlPos - worldPos.xyz);\n\
 	}";
 
 
@@ -1035,17 +1051,23 @@ namespace PolloModel {
 		"#version 330\n\
 		in vec4 vert_Normal;\n\
 		in vec3 lDir;\n\
+		in vec3 inlDir;\n\
 		out vec4 out_Color;\n\
 		uniform mat4 mv_Mat;\n\
 		uniform vec4 color;\n\
-		float kd = 0.5;\n\
+		uniform vec3 lightColor;\n\
 		void main() {\n\
-		float U = dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
-		if (U < 0.2) U = 0.1;\n\
-		if (U >= 0.3 && U < 0.5) U = 0.4;\n\
-		if (U >= 0.5 && U < 0.7) U = 0.6;\n\
-		if (U >= 0.9) U = 1.0;\n\
-			out_Color = vec4(color.xyz * U, 1.0 );\n\
+			out_Color =  vec4(color.xyz * \n\
+				(lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) +\n\
+				lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(inlDir.x, inlDir.y, inlDir.z, 0.0)) +\n\
+				vec3(0.0, 0.0, 0.0)), 1.0);\n\
+		\n\
+		//float U = dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
+		//if (U < 0.2) U = 0.1;\n\
+		//if (U >= 0.3 && U < 0.5) U = 0.4;\n\
+		//if (U >= 0.5 && U < 0.7) U = 0.6;\n\
+		//if (U >= 0.9) U = 1.0;\n\
+			//out_Color = vec4(color.xyz * U, 1.0 );\n\
 }";
 	void setupModel() {
 		glGenVertexArrays(1, &modelVao);
@@ -1092,7 +1114,7 @@ namespace PolloModel {
 	void updateModel(const glm::mat4& transform) {
 		objMat = transform;
 	}
-	void drawModel(glm::vec3 color) {
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor) {
 
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
@@ -1102,7 +1124,9 @@ namespace PolloModel {
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(glGetUniformLocation(modelProgram, "inlPos"), inCabinlightPos.x, inCabinlightPos.y, inCabinlightPos.z);
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), color.r, color.g, color.b, 0.f);
+		glUniform3f(glGetUniformLocation(modelProgram, "lightColor"), lightcolor.r, lightcolor.g, lightcolor.b);
 
 		glDrawArrays(GL_TRIANGLES, 0, 100000);
 
@@ -1147,7 +1171,7 @@ namespace TrumpModel {
 		out vec4 out_Color;\n\
 		uniform mat4 mv_Mat;\n\
 		uniform vec4 color;\n\
-		float kd = 0.5;\n\
+		uniform vec3 lightColor;\n\
 		void main() {\n\
 		float U = dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
 		if (U < 0.2) U = 0.1;\n\
@@ -1201,7 +1225,7 @@ namespace TrumpModel {
 	void updateModel(const glm::mat4& transform) {
 		objMat = transform;
 	}
-	void drawModel(glm::vec3 color) {
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor) {
 
 		glBindVertexArray(modelVao);
 		glUseProgram(modelProgram);
@@ -1212,6 +1236,8 @@ namespace TrumpModel {
 			glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 			glUniform4f(glGetUniformLocation(modelProgram, "color"), color.r, color.g, color.b, 0.f);
+			glUniform3f(glGetUniformLocation(modelProgram, "lightColor"), lightcolor.r, lightcolor.g, lightcolor.b);
+
 
 			glDrawArrays(GL_TRIANGLES, 0, 100000);
 

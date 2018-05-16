@@ -27,28 +27,28 @@ namespace PolloModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(glm::vec3 color);
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
 namespace CabinModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(glm::vec3 color);
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
 namespace NoriaBodyModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(glm::vec3 color);
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
 namespace NoriaLegsModel {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
-	void drawModel(glm::vec3 color);
+	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
 void setupPrims() {
