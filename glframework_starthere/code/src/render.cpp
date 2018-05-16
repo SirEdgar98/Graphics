@@ -84,6 +84,52 @@ bool trumpFocus = true;
 bool show_test_window = false;
 
 
+
+const char* model_vertShader =
+"#version 330\n\
+	in vec3 in_Position;\n\
+	in vec3 in_Normal;\n\
+	uniform vec3 lPos;\n\
+	uniform vec3 inlPos;\n\
+	out vec3 lDir;\n\
+	out vec3 inlDir;\n\
+	out vec4 vert_Normal;\n\
+	uniform mat4 objMat;\n\
+	uniform mat4 mv_Mat;\n\
+	uniform mat4 mvpMat;\n\
+	void main() {\n\
+		vec4 worldPos =  objMat * vec4(in_Position, 1.0);\n\
+		gl_Position = mvpMat * worldPos;\n\
+		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
+		lDir = normalize(lPos - worldPos.xyz);\n\
+		inlDir = normalize(inlPos - worldPos.xyz);\n\
+	}";
+
+const char* model_fragShader =
+"#version 330\n\
+		in vec4 vert_Normal;\n\
+		in vec3 lDir;\n\
+		in vec3 inlDir;\n\
+		out vec4 out_Color;\n\
+		uniform mat4 mv_Mat;\n\
+		uniform vec4 color;\n\
+		uniform vec3 lightColor;\n\
+		void main() {\n\
+			out_Color =  vec4(color.xyz * \n\
+				(lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) +\n\
+				lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(inlDir.x, inlDir.y, inlDir.z, 0.0)) +\n\
+				vec3(0.0, 0.0, 0.0)), 1.0);\n\
+		\n\
+		//float U = dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
+		//if (U < 0.2) U = 0.1;\n\
+		//if (U >= 0.3 && U < 0.5) U = 0.4;\n\
+		//if (U >= 0.5 && U < 0.7) U = 0.6;\n\
+		//if (U >= 0.9) U = 1.0;\n\
+			//out_Color = vec4(color.xyz * U, 1.0 );\n\
+}";
+
+
+
 bool light_moves = true;
 void GUI() {
 	bool show = true;
@@ -1026,49 +1072,10 @@ namespace PolloModel {
 
 
 
-	const char* model_vertShader =
-		"#version 330\n\
-	in vec3 in_Position;\n\
-	in vec3 in_Normal;\n\
-	uniform vec3 lPos;\n\
-	uniform vec3 inlPos;\n\
-	out vec3 lDir;\n\
-	out vec3 inlDir;\n\
-	out vec4 vert_Normal;\n\
-	uniform mat4 objMat;\n\
-	uniform mat4 mv_Mat;\n\
-	uniform mat4 mvpMat;\n\
-	void main() {\n\
-		vec4 worldPos =  objMat * vec4(in_Position, 1.0);\n\
-		gl_Position = mvpMat * worldPos;\n\
-		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
-		lDir = normalize(lPos - worldPos.xyz);\n\
-		inlDir = normalize(inlPos - worldPos.xyz);\n\
-	}";
 
 
-	const char* model_fragShader =
-		"#version 330\n\
-		in vec4 vert_Normal;\n\
-		in vec3 lDir;\n\
-		in vec3 inlDir;\n\
-		out vec4 out_Color;\n\
-		uniform mat4 mv_Mat;\n\
-		uniform vec4 color;\n\
-		uniform vec3 lightColor;\n\
-		void main() {\n\
-			out_Color =  vec4(color.xyz * \n\
-				(lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)) +\n\
-				lightColor * dot(normalize(vert_Normal), mv_Mat*vec4(inlDir.x, inlDir.y, inlDir.z, 0.0)) +\n\
-				vec3(0.0, 0.0, 0.0)), 1.0);\n\
-		\n\
-		//float U = dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
-		//if (U < 0.2) U = 0.1;\n\
-		//if (U >= 0.3 && U < 0.5) U = 0.4;\n\
-		//if (U >= 0.5 && U < 0.7) U = 0.6;\n\
-		//if (U >= 0.9) U = 1.0;\n\
-			//out_Color = vec4(color.xyz * U, 1.0 );\n\
-}";
+
+	
 	void setupModel() {
 		glGenVertexArrays(1, &modelVao);
 		glBindVertexArray(modelVao);
@@ -1147,7 +1154,7 @@ namespace TrumpModel {
 
 
 
-	const char* model_vertShader =
+	/*const char* model_vertShader =
 		"#version 330\n\
 	in vec3 in_Position;\n\
 	in vec3 in_Normal;\n\
@@ -1161,25 +1168,25 @@ namespace TrumpModel {
 		gl_Position = mvpMat * objMat * vec4(in_Position, 1.0);\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
 		lDir = normalize(lPos - gl_Position.xyz );\n\
-	}";
+	}";*/
 
 
-	const char* model_fragShader =
-		"#version 330\n\
-		in vec4 vert_Normal;\n\
-		in vec3 lDir;\n\
-		out vec4 out_Color;\n\
-		uniform mat4 mv_Mat;\n\
-		uniform vec4 color;\n\
-		uniform vec3 lightColor;\n\
-		void main() {\n\
-		float U = dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
-		if (U < 0.2) U = 0.1;\n\
-		if (U >= 0.3 && U < 0.5) U = 0.4;\n\
-		if (U >= 0.5 && U < 0.7) U = 0.6;\n\
-		if (U >= 0.9) U = 1.0;\n\
-			out_Color = vec4(color.xyz * U, 1.0 );\n\
-}";
+//	const char* model_fragShader =
+//		"#version 330\n\
+//		in vec4 vert_Normal;\n\
+//		in vec3 lDir;\n\
+//		out vec4 out_Color;\n\
+//		uniform mat4 mv_Mat;\n\
+//		uniform vec4 color;\n\
+//		uniform vec3 lightColor;\n\
+//		void main() {\n\
+//		float U = dot(normalize(vert_Normal), mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
+//		if (U < 0.2) U = 0.1;\n\
+//		if (U >= 0.3 && U < 0.5) U = 0.4;\n\
+//		if (U >= 0.5 && U < 0.7) U = 0.6;\n\
+//		if (U >= 0.9) U = 1.0;\n\
+//			out_Color = vec4(color.xyz * U, 1.0 );\n\
+//}";
 	void setupModel() {
 		glGenVertexArrays(1, &modelVao);
 		glBindVertexArray(modelVao);
@@ -1237,6 +1244,7 @@ namespace TrumpModel {
 			glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 			glUniform4f(glGetUniformLocation(modelProgram, "color"), color.r, color.g, color.b, 0.f);
 			glUniform3f(glGetUniformLocation(modelProgram, "lightColor"), lightcolor.r, lightcolor.g, lightcolor.b);
+			glUniform3f(glGetUniformLocation(modelProgram, "inlPos"), inCabinlightPos.x, inCabinlightPos.y, inCabinlightPos.z);
 
 
 			glDrawArrays(GL_TRIANGLES, 0, 100000);
