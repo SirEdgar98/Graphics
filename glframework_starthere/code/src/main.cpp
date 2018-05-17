@@ -113,6 +113,29 @@ int main(int argc, char** argv) {
 			case SDL_QUIT:
 				quit_app = true;
 				break;
+			case SDL_KEYDOWN:
+				switch (eve.key.keysym.sym)
+				{
+				case SDLK_a: //Following exercise
+					break;
+				case SDLK_z: //Previous exercise
+					break;
+				case SDLK_d: //Trigger Day-Night transition
+					break;
+				case SDLK_b: //Trigger Bulb Light variants
+					break;
+				case SDLK_t: //Trigger Toon Shading variants
+					break;
+				case SDLK_c: // Trigger Camara position variants
+					break;
+				case SDLK_m: //Model transitioning
+					break;
+				case SDLK_s: //Ever-falling wheel
+					break;
+				default:
+					break;
+				}
+				break;
 			}
 		}
 		ImGui_ImplSdlGL3_NewFrame(mainwindow);
