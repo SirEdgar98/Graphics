@@ -402,11 +402,12 @@ void GLrender(double currentTime) {
 	float v = currentTime / 150;
 	float r = 170.0;
 	float sunRad = 1000.0; 
-	float sunVel =( currentTime * 6.28) / 20 ; 
+	float sunVel =( currentTime * 6.28) / 20;
+	float moonVel = (currentTime * 6.28) / 18;
 	int numCab = 20;
 	glm::vec3 noriaScale = glm::vec3(0.03, 0.03, 0.03);
 	glm::vec3 legsScale = glm::vec3(0.03, 0.03, 0.03);
-	glm::vec3 noria2Offset = glm::vec3(0.0, 0.0, 3000.0);
+	glm::vec3 noria2Offset = glm::vec3(10000.0, 0.0, 0.0);
 
 
 
@@ -422,12 +423,11 @@ void GLrender(double currentTime) {
 
 
 		//SE CRUZAN EN 1 y -1
-		lightMoonPos = glm::vec3(cos(toRadians(30.0)) * sunRad * sin(-sunVel), sunRad * cos(-sunVel) - r, sin(toRadians(30.0)) * sunRad * sin(-sunVel));
+		lightMoonPos = glm::vec3(cos(toRadians(30.0)) * sunRad * sin(-moonVel), sunRad * cos(-moonVel) - r, sin(toRadians(30.0)) * sunRad * sin(-moonVel));
 
-		//NO SE CRUZAN
-		//lightMoonPos = glm::vec3(cos(toRadians(30.0)) * sunRad * -sin(sunVel), sunRad * -cos(sunVel) - r, sin(toRadians(30.0)) * sunRad * -sin(sunVel));
+	
 
-		moonlight = interpolate(colors::black, colors::moonlightcolor,   -(cos(sunVel) + 1.0)/2.0);
+		moonlight = interpolate(colors::black, colors::moonlightcolor,   -(cos(moonVel) + 1.0)/2.0);
 
 	}
 	
