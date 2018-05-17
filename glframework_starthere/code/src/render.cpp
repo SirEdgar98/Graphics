@@ -53,6 +53,9 @@ glm::vec3 moonlight;
 
 
 
+
+
+
 extern bool loadOBJ(const char * path,
 	std::vector < glm::vec3 > & out_vertices,
 	std::vector < glm::vec2 > & out_uvs,
@@ -83,7 +86,7 @@ namespace colors {
 	const glm::vec3 yellow = glm::vec3(0.8, 0.8, 0.0);
 	const glm::vec3 sunlightcolor = glm::vec3(0.5, 0.5, 0.5);
 	const glm::vec3 sunlightredcolor = glm::vec3(1.0, 0.3, 0.0);
-	const glm::vec3 moonlightcolor = glm::vec3(0.0, 0.0, 0.5);
+	const glm::vec3 moonlightcolor = glm::vec3(0.5, 0.5, 0.8);
 
 }
 
@@ -161,6 +164,11 @@ const char* model_fragShader =
 
 
 bool light_moves = true;
+bool sunActive = true;
+bool moonActive = true;
+bool bulbActive = true;
+bool secondWheel = false;
+
 void GUI() {
 	bool show = true;
 	ImGui::Begin("Simulation Parameters", &show, 0);
@@ -171,6 +179,25 @@ void GUI() {
 		if (ImGui::Button("Toggle Light Move")) {
 			light_moves = !light_moves;
 		}
+		
+
+		if (ImGui::Button("Toggle Sun Light")) {
+			sunActive = !sunActive;
+		}
+
+		if (ImGui::Button("Toggle Moon Light")) {
+			moonActive = !moonActive;
+		}
+
+		if (ImGui::Button("Toggle Bulb Light")) {
+			bulbActive = !bulbActive;
+		}
+
+		if (ImGui::Button("Toggle Second Wheel")) {
+			secondWheel = !secondWheel;
+		}
+
+
 
 		if (ImGui::Button("Camera")) {
 			currentCameraCounter++;
@@ -379,6 +406,8 @@ void GLrender(double currentTime) {
 	int numCab = 20;
 	glm::vec3 noriaScale = glm::vec3(0.03, 0.03, 0.03);
 	glm::vec3 legsScale = glm::vec3(0.03, 0.03, 0.03);
+	glm::vec3 noria2Offset = glm::vec3(0.0, 0.0, 3000.0);
+
 
 
 	
@@ -401,13 +430,19 @@ void GLrender(double currentTime) {
 		moonlight = interpolate(colors::black, colors::moonlightcolor,   -(cos(sunVel) + 1.0)/2.0);
 
 	}
-	//Light Color change with sun movement
-	//colors::light = 
+	
+	if (!sunActive)
+		sunlight = colors::black;
+
+	if (!moonActive)
+		moonlight = colors::black;
 
 	
 	for (int i = 0; i < numCab; i++) {
 		glm::mat4 noriaMat = glm::translate(glm::mat4(1.f), glm::vec3(r*(cos((6.26 * v) + ((6.26 / numCab)*i))), r*(sin((6.26*v) + ((6.26 / numCab)*i))), 0.0));
+		glm::mat4 noria2Mat = glm::translate(glm::mat4(1.f), glm::vec3(r*(cos((6.26 * -v) + ((6.26 / numCab)*i))), r*(sin((6.26*-v) + ((6.26 / numCab)*i))), 0.0));
 		noriaMat = glm::translate(noriaMat, glm::vec3(0.0, -5.0, 0.0));
+		noria2Mat = glm::translate(noria2Mat, glm::vec3(0.0, -5.0, 0.0));
 		
 		if (i == 0) {
 
@@ -475,26 +510,50 @@ void GLrender(double currentTime) {
 
 			RV::_MVP = RV::_projection * RV::_modelView;
 
-			PolloModel::drawModel(colors::orange, colors::white);
-			TrumpModel::drawModel(colors::yellow, colors::white);
+
+			if (bulbActive) {
+				PolloModel::drawModel(colors::orange, colors::white);
+				TrumpModel::drawModel(colors::yellow, colors::white);
+			}
+			else {
+				PolloModel::drawModel(colors::orange, colors::black);
+				TrumpModel::drawModel(colors::yellow, colors::black);
+			}
 		}
 
 		
 		noriaMat = glm::scale(noriaMat, noriaScale);
 		CabinModel::updateModel(noriaMat);
 		CabinModel::drawModel(colors::white, colors::black);
+
+		if (secondWheel) {
+			noria2Mat = glm::scale(noria2Mat, noriaScale);
+			noria2Mat = glm::translate(noria2Mat, glm::vec3(0.0, 0.0, 3000.0));
+			CabinModel::updateModel(noria2Mat);
+			CabinModel::drawModel(colors::white, colors::black);
+
+		}
+
 	
 	}
 
 	
 		glm::mat4 noriaMat = glm::rotate(glm::mat4(1.f), (float)(6.26f * v), glm::vec3(0.0, 0.0, 1.0));
-
+		
 		
 
 		noriaMat = glm::scale(noriaMat, noriaScale);
 
 	NoriaBodyModel::updateModel(noriaMat);
 	NoriaBodyModel::drawModel(colors::white, colors::black);
+
+	if (secondWheel) {
+		glm::mat4 noria2Mat = glm::rotate(glm::mat4(1.f), (float)(6.26f * -v), glm::vec3(0.0, 0.0, 1.0));
+		noria2Mat = glm::scale(noria2Mat, noriaScale);
+		noria2Mat = glm::translate(noria2Mat, noria2Offset);
+		NoriaBodyModel::updateModel(noria2Mat);
+		NoriaBodyModel::drawModel(colors::white, colors::black);
+	}
 
 	glm::mat4 legsMat = glm::mat4(1.f);
 	legsMat = glm::translate(legsMat, glm::vec3(0.0, -r/2, 0.0));
@@ -504,6 +563,12 @@ void GLrender(double currentTime) {
 
 	NoriaLegsModel::updateModel(legsMat);
 	NoriaLegsModel::drawModel(colors::white, colors::black);
+
+	if (secondWheel) {
+		legsMat = glm::translate(legsMat, -noria2Offset);
+		NoriaLegsModel::updateModel(legsMat);
+		NoriaLegsModel::drawModel(colors::white, colors::black);
+	}
 	
 	//Sun sphere
 	Sphere::updateSphere(lightPos, lightRadius);
