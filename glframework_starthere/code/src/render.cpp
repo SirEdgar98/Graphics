@@ -100,6 +100,8 @@ glm::vec3 interpolate(glm::vec3 first, glm::vec3 second, float alpha){
 }
 
 
+
+
 int currentCameraCounter = 0;
 cameraPlane currentCamera = cameraPlane::GENERAL_SHOT;
 
@@ -167,6 +169,15 @@ const char* model_fragShader =
 }";
 
 
+//Key variables 
+int currentCameraShot;
+bool light_moves_M;
+bool sunActive_M;
+bool moonActive_M;
+bool bulbActive_M;
+bool secondWheel_M;
+bool toon_M;
+bool modelTranition_M;
 
 bool light_moves = true;
 bool sunActive = true;
@@ -174,6 +185,7 @@ bool moonActive = true;
 bool bulbActive = true;
 bool secondWheel = false;
 bool toon = false;
+bool modelTranition = false; 
 
 void GUI() {
 	bool show = true;
@@ -181,12 +193,61 @@ void GUI() {
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 
-
-		if (ImGui::Button("Toggle Light Move")) {
-			light_moves = !light_moves;
-		}
+		ImGui::TextColored(ImVec4(1.0, 0.3, 0.0, 1.0), ("D): Day-Night Transitions ->"));
+		ImGui::SameLine();
+		if (!light_moves)
+			ImGui::TextColored(ImVec4(1.0, 0.0, 0.0, 1.0), ("Light Cycle stoped"));
+		if (!sunActive)
+			ImGui::TextColored(ImVec4(1.0, 0.0, 0.0, 1.0), ("Sun Off"));
+		if (!moonActive)
+			ImGui::TextColored(ImVec4(1.0, 0.0, 0.0, 1.0), ("Moon Off"));
+		if (light_moves)
+			ImGui::Text("Light Cycle started");
+		if (sunActive)
+			ImGui::Text("Sun ON");
+		if (moonActive)
+			ImGui::Text("Moon ON");
 		
+		ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), ("C): Current Camara ->"));
+		ImGui::SameLine();
+		if (currentCameraShot == 0)
+			ImGui::Text("General Shot");
+		if (currentCameraShot == 1)
+			ImGui::Text("Counter Shot");
+		if (currentCameraShot == 2)
+			ImGui::Text("Lateral Viwe");
+		if (currentCameraShot == 3)
+			ImGui::Text("God's Eye Shot");
 
+		ImGui::TextColored(ImVec4(1.0, 1.0, 0.0, 1.0), ("B): Bulb Light ->"));
+		ImGui::SameLine();
+		if(!bulbActive)
+			ImGui::Text("Disabled");
+		if (bulbActive)
+			ImGui::Text("Active");
+
+		ImGui::TextColored(ImVec4(0.0, 1.0, 1.0, 1.0), ("T): Toon Shading ->"));
+		ImGui::SameLine();
+		if (!toon)
+			ImGui::Text("Disabled");
+		if (toon)
+			ImGui::Text("Active");
+
+		ImGui::TextColored(ImVec4(0.0, 0.5, 1.0, 1.0), ("S): Ever Falling Wheel ->"));
+		ImGui::SameLine();
+		if (!secondWheel)
+			ImGui::Text("A safety wheel");
+		if (secondWheel)
+			ImGui::Text("You will fall forever!!");
+
+		ImGui::TextColored(ImVec4(0.8, 0.5, 0.7, 1.0), ("M): Model Transition ->"));
+		ImGui::SameLine();
+		if (!modelTranition)
+			ImGui::Text("Using cubes");
+		if (modelTranition)
+			ImGui::Text("Using Noria");
+
+		/*
 		if (ImGui::Button("Toggle Sun Light")) {
 			sunActive = !sunActive;
 		}
@@ -204,23 +265,7 @@ void GUI() {
 		}
 		if (ImGui::Button("Toggle Toon Shader")) {
 			toon = !toon;
-		}
-
-
-
-		if (ImGui::Button("Camera")) {
-			currentCameraCounter++;
-			currentCameraCounter %= 4;
-
-			switch (currentCameraCounter)
-			{
-			case 0: currentCamera = cameraPlane::GENERAL_SHOT; break;
-			case 1: currentCamera = cameraPlane::COUNTER_SHOT; break;
-			case 2: currentCamera = cameraPlane::LATERAL_SHOT; break;
-			case 3: currentCamera = cameraPlane::GODS_EYE_SHOT; break;
-			}
-
-		}
+		}*/
 
 	}
 	// .........................
@@ -402,6 +447,28 @@ void GLcleanup() {
 void GLrender(double currentTime) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
+	//Exercice control; 
+	currentCameraCounter = currentCameraShot;
+	switch (currentCameraCounter)
+	{
+	case 0: currentCamera = cameraPlane::GENERAL_SHOT; break;
+	case 1: currentCamera = cameraPlane::COUNTER_SHOT; break;
+	case 2: currentCamera = cameraPlane::LATERAL_SHOT; break;
+	case 3: currentCamera = cameraPlane::GODS_EYE_SHOT; break;
+	}
+
+	light_moves = light_moves_M;
+	sunActive = sunActive_M;
+	moonActive = moonActive_M;
+	bulbActive = bulbActive_M;
+	secondWheel = secondWheel_M;
+	toon = toon_M;
+	modelTranition = modelTranition_M;
+
+
+
+
 	RV::_modelView = glm::mat4(1.f);
 	RV::_modelView = glm::translate(RV::_modelView, glm::vec3(RV::panv[0], RV::panv[1], RV::panv[2]));
 	RV::_modelView = glm::rotate(RV::_modelView, RV::rota[1], glm::vec3(1.f, 0.f, 0.f));
@@ -419,7 +486,7 @@ void GLrender(double currentTime) {
 	glm::vec3 noria2Offset = glm::vec3(350.0, 0.0, 0.0);
 
 
-
+	
 	
 	//Sun Movement
 	if (light_moves) {

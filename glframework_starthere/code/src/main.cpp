@@ -4,7 +4,6 @@
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_sdl_gl3.h>
 #include <cstdio>
-
 #include "GL_framework.h"
 
 
@@ -18,6 +17,16 @@ extern void GLResize(int width, int height);
 extern void GLinit(int width, int height);
 extern void GLcleanup();
 extern void GLrender(double currentTime);
+
+extern int currentCameraShot;
+int currentDayNight;
+extern bool light_moves_M;
+extern bool sunActive_M;
+extern bool moonActive_M;
+extern bool bulbActive_M;
+extern bool secondWheel_M;
+extern bool toon_M;
+extern bool modelTranition_M;
 
 
 extern void myRenderCode(double currentTime);
@@ -98,6 +107,15 @@ int main(int argc, char** argv) {
 	ImGui_ImplSdlGL3_Init(mainwindow);
 
 
+	currentCameraShot = 0; 
+	currentDayNight = 0; 
+	light_moves_M = true;
+	sunActive_M = true;
+	moonActive_M = true;
+	bulbActive_M = true;
+	secondWheel_M = false;
+	toon_M = false;
+	modelTranition_M = false;
 
 	bool quit_app = false;
 	while (!quit_app) {
@@ -117,20 +135,36 @@ int main(int argc, char** argv) {
 				switch (eve.key.keysym.sym)
 				{
 				case SDLK_a: //Following exercise
+
 					break;
 				case SDLK_z: //Previous exercise
+
 					break;
 				case SDLK_d: //Trigger Day-Night transition
+					if(currentDayNight == 0)
+						light_moves_M = !light_moves_M; 
+					if (currentDayNight == 1)
+						sunActive_M = !sunActive_M;
+					if (currentDayNight == 2)
+						moonActive_M = !moonActive_M;
+					currentDayNight++;
+					currentDayNight %= 3;
 					break;
 				case SDLK_b: //Trigger Bulb Light variants
+					bulbActive_M = !bulbActive_M; 
 					break;
 				case SDLK_t: //Trigger Toon Shading variants
+					toon_M = !toon_M;
 					break;
 				case SDLK_c: // Trigger Camara position variants
+					currentCameraShot++;
+					currentCameraShot %= 4;
 					break;
 				case SDLK_m: //Model transitioning
+					modelTranition_M = !modelTranition_M;
 					break;
 				case SDLK_s: //Ever-falling wheel
+					secondWheel_M = !secondWheel_M;
 					break;
 				default:
 					break;
