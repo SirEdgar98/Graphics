@@ -46,14 +46,11 @@ float moonRadius = 10.0f;
 
 //Inside Cabin Light
 glm::vec3 inCabinlightPos;
-float inCabinlightRadius = 1.0;
+float inCabinlightRadius = 0.5;
 
 glm::vec3 sunlight;
 glm::vec3 moonlight;
 glm::vec3 ambientLight;
-
-
-
 
 
 
@@ -73,9 +70,6 @@ enum class cameraPlane
 };
 
 
-
-
-
 //COLORS
 namespace colors {
 	const glm::vec3 red = glm::vec3(0.7,0.1,0.0);
@@ -91,17 +85,12 @@ namespace colors {
 
 }
 
-
 glm::vec3 interpolate(glm::vec3 first, glm::vec3 second, float alpha){
-
 	glm::vec3 vec = second - first;
-
 	return first + vec * alpha;
 }
 
-
-
-
+//Camara controll and time transition
 int currentCameraCounter = 0;
 cameraPlane currentCamera = cameraPlane::GENERAL_SHOT;
 
@@ -110,10 +99,8 @@ float nextTime = clock() + transitionTime * 1000;
 bool trumpFocus = true;
 
 
-bool show_test_window = false;
 
-
-
+// GLOBAL SHADERS
 const char* model_vertShader =
 "#version 330\n\
 	in vec3 in_Position;\n\
@@ -187,6 +174,8 @@ bool secondWheel = false;
 bool toon = false;
 bool modelTranition = false; 
 
+
+//Information GUI
 void GUI() {
 	bool show = true;
 	ImGui::Begin("Simulation Parameters", &show, 0);
@@ -246,37 +235,8 @@ void GUI() {
 			ImGui::Text("Using cubes");
 		if (modelTranition)
 			ImGui::Text("Using Noria");
-
-		/*
-		if (ImGui::Button("Toggle Sun Light")) {
-			sunActive = !sunActive;
-		}
-
-		if (ImGui::Button("Toggle Moon Light")) {
-			moonActive = !moonActive;
-		}
-
-		if (ImGui::Button("Toggle Bulb Light")) {
-			bulbActive = !bulbActive;
-		}
-
-		if (ImGui::Button("Toggle Second Wheel")) {
-			secondWheel = !secondWheel;
-		}
-		if (ImGui::Button("Toggle Toon Shader")) {
-			toon = !toon;
-		}*/
-
 	}
-	// .........................
-
 	ImGui::End();
-
-	// Example code -- ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
-	if (show_test_window) {
-		ImGui::SetNextWindowPos(ImVec2(650, 60), ImGuiSetCond_FirstUseEver);
-		ImGui::ShowTestWindow(&show_test_window);
-	}
 }
 
 ///////// fw decl
@@ -338,7 +298,7 @@ namespace MyFirstShader {
 	void myCleanupCode(void);
 
 	GLuint myRenderProgram;
-	GLuint myVAO; // VertexArrayObject
+	GLuint myVAO; 
 }
 
 
@@ -346,7 +306,7 @@ namespace MyFirstShader {
 
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
-	float zNear = 1.f;
+	float zNear = 5.0f;
 	const float zFar = 100000.0f;
 
 	glm::mat4 _projection;
@@ -480,13 +440,13 @@ void GLrender(double currentTime) {
 	float sunRad = 1000.0; 
 	float sunVel =( currentTime * 6.28) / 20;
 	float moonVel = (currentTime * 6.28) / 18;
+	float godsEyeVel = (currentTime * 6.28) / 15;
 	int numCab = 20;
 	glm::vec3 noriaScale = glm::vec3(0.03, 0.03, 0.03);
 	glm::vec3 legsScale = glm::vec3(0.03, 0.03, 0.03);
-	glm::vec3 noria2Offset = glm::vec3(350.0, 0.0, 0.0);
+	glm::vec3 noria2Offset = glm::vec3(370.0, 0.0, 0.0);
 
 
-	
 	
 	//Sun Movement
 	if (light_moves) {
@@ -502,9 +462,6 @@ void GLrender(double currentTime) {
 
 		//SE CRUZAN EN 1 y -1
 		lightMoonPos = glm::vec3(cos(toRadians(30.0)) * sunRad * sin(-moonVel), sunRad * cos(-moonVel) - r, sin(toRadians(30.0)) * sunRad * sin(-moonVel));
-
-	
-
 		moonlight = interpolate(colors::black, colors::moonlightcolor,   -(cos(moonVel) + 1.0)/2.0);
 
 	}
@@ -513,13 +470,12 @@ void GLrender(double currentTime) {
 	
 	if (!sunActive) {
 		sunlight = colors::black;
-		ambientLight = glm::vec3(0.0, 0.0, 0.2);
+		ambientLight = glm::vec3(0.0, 0.1, 0.1);
 	}
 
 	if (!moonActive)
 		moonlight = colors::black;
 
-	
 	for (int i = 0; i < numCab; i++) {
 		glm::mat4 noriaMat = glm::translate(glm::mat4(1.f), glm::vec3(r*(cos((6.26 * v) + ((6.26 / numCab)*i))), r*(sin((6.26*v) + ((6.26 / numCab)*i))), 0.0));
 		glm::mat4 noria2Mat = glm::translate(glm::mat4(1.f), glm::vec3(r*(cos((6.26 * -v) + ((6.26 / numCab)*i))), r*(sin((6.26*-v) + ((6.26 / numCab)*i))), 0.0));
@@ -585,7 +541,7 @@ void GLrender(double currentTime) {
 			glm::vec3 upOfssetPollo = glm::vec3(0.0, 5.0, 0.0);
 
 			glm::vec3 cabinLoc = glm::vec3(auxMat[3][0], auxMat[3][1], auxMat[3][2]);
-			glm::vec3 cabinOffset = glm::vec3(0.0, 9.0, 0.001);
+			glm::vec3 cabinOffset = glm::vec3(0.0, 7.0, 0.001);
 
 
 			
@@ -610,7 +566,7 @@ void GLrender(double currentTime) {
 				break;
 
 			case cameraPlane::GODS_EYE_SHOT:
-				RV::_modelView = glm::lookAt(cabinLoc + cabinOffset, cabinLoc - cabinOffset, glm::vec3(sin(currentTime), 0.0, cos(currentTime)));
+				RV::_modelView = glm::lookAt(cabinLoc + cabinOffset, cabinLoc - cabinOffset, glm::vec3(sin(godsEyeVel), 0.0, cos(godsEyeVel)));
 				break;
 
 			}
