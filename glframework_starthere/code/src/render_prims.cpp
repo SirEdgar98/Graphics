@@ -51,6 +51,13 @@ namespace NoriaLegsModel {
 	void drawModel(glm::vec3 color, glm::vec3 lightcolor);
 }
 
+namespace Cube {
+	void setupCube();
+	void cleanupCube();
+	void updateCube(const glm::mat4& transform);
+	void drawCube();
+}
+
 void setupPrims() {
 	Sphere::setupSphere();
 	TrumpModel::setupModel();

@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
 	bulbActive_M = true;
 	secondWheel_M = false;
 	toon_M = false;
-	modelTranition_M = false;
+	modelTranition_M = true;
 
 	bool quit_app = false;
 	while (!quit_app) {
