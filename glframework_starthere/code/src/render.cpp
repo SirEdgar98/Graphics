@@ -613,7 +613,36 @@ void GLrender(double currentTime) {
 		if (!modelTranition) {
 			noriaMat = glm::scale(noriaMat, noriaScale);
 			CabinModel::updateModel(noriaMat);
-			CabinModel::drawModel(colors::white, colors::black);
+
+			if (contourOn) {
+				glEnable(GL_STENCIL_TEST);
+				glEnable(GL_DEPTH_TEST);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+
+				glStencilMask(0x00);
+
+				glStencilFunc(GL_ALWAYS, 1, 0xFF);
+				glStencilMask(0xFF);
+				CabinModel::drawModel(colors::white, colors::black);
+
+				glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+				glStencilMask(0x00);
+				glDisable(GL_DEPTH_TEST);
+
+				contour = true;
+				CabinModel::updateModel(glm::scale(noriaMat, glm::vec3(1.05, 1.02, 1.02)));
+				CabinModel::drawModel(colors::white, colors::black);
+				contour = false;
+
+				glStencilMask(0xFF);
+				glEnable(GL_DEPTH_TEST);
+				glDisable(GL_STENCIL_TEST);
+			}
+			else {
+				CabinModel::drawModel(colors::white, colors::black);
+			}
+			
 		}
 		else {
 			noriaMat = glm::scale(noriaMat, glm::vec3(15.0,15.0,15.0));
@@ -642,7 +671,7 @@ void GLrender(double currentTime) {
 			noriaMat = glm::scale(noriaMat, noriaScale);
 
 			NoriaBodyModel::updateModel(noriaMat);
-			NoriaBodyModel::drawModel(colors::white, colors::black);
+			
 
 			if (secondWheel) {
 				glm::mat4 noria2Mat = glm::mat4(1.f);
@@ -660,6 +689,7 @@ void GLrender(double currentTime) {
 			legsMat = glm::translate(legsMat, glm::vec3(0.0, -r / 2, 0.0));
 			legsMat = glm::scale(legsMat, legsScale);
 			legsMat = glm::rotate(legsMat, 3.14f, glm::vec3(0.0, 1.0, 0.0));
+
 			NoriaLegsModel::updateModel(legsMat);
 
 			if (contourOn) {
@@ -672,6 +702,7 @@ void GLrender(double currentTime) {
 
 				glStencilFunc(GL_ALWAYS, 1, 0xFF);
 				glStencilMask(0xFF);
+				NoriaBodyModel::drawModel(colors::white, colors::black);
 				NoriaLegsModel::drawModel(colors::white, colors::black);
 
 				glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
@@ -679,9 +710,10 @@ void GLrender(double currentTime) {
 				glDisable(GL_DEPTH_TEST);
 
 				contour = true;
-				NoriaBodyModel::updateModel(glm::scale(legsMat, glm::vec3(1.1, 1.1, 1.1)));
-				NoriaLegsModel::updateModel(legsMat);
+				NoriaLegsModel::updateModel(glm::scale(legsMat, glm::vec3(1.05, 1.02, 1.02)));
+				NoriaBodyModel::updateModel(glm::scale(noriaMat, glm::vec3(1.05, 1.02, 1.02)));
 				NoriaLegsModel::drawModel(colors::white, colors::black);
+				NoriaBodyModel::drawModel(colors::white, colors::black);
 				contour = false;
 
 				glStencilMask(0xFF);
@@ -691,6 +723,7 @@ void GLrender(double currentTime) {
 			else {
 				
 				NoriaLegsModel::drawModel(colors::white, colors::black);
+				NoriaBodyModel::drawModel(colors::white, colors::black);
 			}
 
 			if (secondWheel) {
@@ -707,7 +740,7 @@ void GLrender(double currentTime) {
 			if (!modelTranition) {
 				glm::vec3 bulbColor;
 
-				if (bulbActive) bulbColor = colors::white;else bulbColor = colors::black;
+				if (bulbActive) bulbColor = colors::white; else bulbColor = colors::black;
 
 					if (contourOn) {
 						glEnable(GL_STENCIL_TEST);
