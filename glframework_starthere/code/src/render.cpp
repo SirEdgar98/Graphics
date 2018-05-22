@@ -52,6 +52,9 @@ glm::vec3 sunlight;
 glm::vec3 moonlight;
 glm::vec3 ambientLight;
 
+bool contour = false;
+
+
 
 
 extern bool loadOBJ(const char * path,
@@ -132,6 +135,7 @@ const char* model_fragShader =
 		in vec3 inlDir;\n\
 		out vec4 out_Color;\n\
 		uniform int toon;\n\
+		uniform int flatColor;\n\
 		uniform mat4 mv_Mat;\n\
 		uniform vec4 color;\n\
 		uniform vec3 sunColor;\n\
@@ -153,6 +157,7 @@ const char* model_fragShader =
                 moonColor * dot(normalize(vert_Normal), mv_Mat*vec4(moonDir.x, moonDir.y, moonDir.z, 0.0)) +\n\
 				inColor * dot(normalize(vert_Normal), mv_Mat*vec4(inlDir.x, inlDir.y, inlDir.z, 0.0))+\n\
                 ambientLight), 1.0 );}\n\
+		if(flatColor==1){out_Color = vec4(1.0,0.0,0.0,0.0);}\n\
 }";
 
 
@@ -174,6 +179,11 @@ bool bulbActive = true;
 bool secondWheel = false;
 bool toon = false;
 bool modelTranition = true; 
+bool cotourOn = true;
+glm::mat4 polloMat;
+glm::mat4 trumpMat;
+
+
 
 
 //Information GUI
@@ -197,6 +207,8 @@ void GUI() {
 			ImGui::Text("Sun ON");
 		if (moonActive)
 			ImGui::Text("Moon ON");
+		if (cotourOn)
+			ImGui::Text("Contour ON");
 		
 		ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), ("C): Current Camara ->"));
 		ImGui::SameLine();
@@ -398,7 +410,8 @@ void GLcleanup() {
 
 
 void GLrender(double currentTime) {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
 
 
 	//Exercice control; 
@@ -514,8 +527,9 @@ void GLrender(double currentTime) {
 			inCabinlightPos = glm::vec3(auxMat[3][0], auxMat[3][1] - 4 * glm::abs(cos(currentTime)) - 4, auxMat[3][2] + 8 * sin(currentTime));
 
 			//Set Trump and Pollo in cabin position
-			glm::mat4 polloMat = glm::translate(auxMat, glm::vec3(6.0,-10.0,0.0));
-			glm::mat4 trumpMat = glm::translate(auxMat, glm::vec3(-5.0, -10.0, 0.0));
+			
+			polloMat = glm::translate(auxMat, glm::vec3(6.0,-10.0,0.0));
+			trumpMat = glm::translate(auxMat, glm::vec3(-5.0, -10.0, 0.0));
 
 			polloMat = glm::rotate(polloMat, toRadians(-90.0), glm::vec3(0.0, 1.0, 0.0));
 			trumpMat = glm::rotate(trumpMat, toRadians(90.0), glm::vec3(0.0, 1.0, 0.0));
@@ -566,16 +580,7 @@ void GLrender(double currentTime) {
 
 			RV::_MVP = RV::_projection * RV::_modelView;
 
-			if (!modelTranition) {
-				if (bulbActive) {
-					PolloModel::drawModel(colors::orange, colors::white);
-					TrumpModel::drawModel(colors::yellow, colors::white);
-				}
-				else {
-					PolloModel::drawModel(colors::orange, colors::black);
-					TrumpModel::drawModel(colors::yellow, colors::black);
-				}
-			}
+			
 		}
 
 		
@@ -630,10 +635,38 @@ void GLrender(double currentTime) {
 			legsMat = glm::translate(legsMat, glm::vec3(0.0, -r / 2, 0.0));
 			legsMat = glm::scale(legsMat, legsScale);
 			legsMat = glm::rotate(legsMat, 3.14f, glm::vec3(0.0, 1.0, 0.0));
-
-
 			NoriaLegsModel::updateModel(legsMat);
-			NoriaLegsModel::drawModel(colors::white, colors::black);
+
+			if (cotourOn) {
+				glEnable(GL_STENCIL_TEST);
+				glEnable(GL_DEPTH_TEST);
+				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+
+				glStencilMask(0x00);
+
+				glStencilFunc(GL_ALWAYS, 1, 0xFF);
+				glStencilMask(0xFF);
+				NoriaLegsModel::drawModel(colors::white, colors::black);
+
+				glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+				glStencilMask(0x00);
+				glDisable(GL_DEPTH_TEST);
+
+				contour = true;
+				NoriaBodyModel::updateModel(glm::scale(legsMat, glm::vec3(1.1, 1.1, 1.1)));
+				NoriaLegsModel::updateModel(legsMat);
+				NoriaLegsModel::drawModel(colors::white, colors::black);
+				contour = false;
+
+				glStencilMask(0xFF);
+				glEnable(GL_DEPTH_TEST);
+				glDisable(GL_STENCIL_TEST);
+			}
+			else {
+				
+				NoriaLegsModel::drawModel(colors::white, colors::black);
+			}
 
 			if (secondWheel) {
 				legsMat = glm::mat4(1.f);
@@ -644,7 +677,56 @@ void GLrender(double currentTime) {
 				NoriaLegsModel::updateModel(legsMat);
 				NoriaLegsModel::drawModel(colors::white, colors::black);
 			}
+
+
+			if (!modelTranition) {
+				glm::vec3 bulbColor;
+
+
+				if (bulbActive) bulbColor = colors::white;else bulbColor = colors::black;
+
+					if (cotourOn) {
+						glEnable(GL_STENCIL_TEST);
+						glEnable(GL_DEPTH_TEST);
+						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+
+						glStencilMask(0x00); 
+
+						glStencilFunc(GL_ALWAYS, 1, 0xFF);
+						glStencilMask(0xFF);
+						PolloModel::drawModel(colors::orange, bulbColor);
+						TrumpModel::drawModel(colors::yellow, bulbColor);
+
+						glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+						glStencilMask(0x00);
+						glDisable(GL_DEPTH_TEST);
+
+						contour = true;
+						PolloModel::updateModel(glm::scale(polloMat, glm::vec3(1.1, 1.1, 1.1)));
+						PolloModel::drawModel(colors::orange, bulbColor);
+						TrumpModel::updateModel(glm::scale(trumpMat, glm::vec3(1.1, 1.1, 1.1)));
+						TrumpModel::drawModel(colors::yellow, bulbColor);
+						contour = false;
+
+						glStencilMask(0xFF);
+						glEnable(GL_DEPTH_TEST);
+						glDisable(GL_STENCIL_TEST);
+
+					}
+					else {
+						PolloModel::drawModel(colors::orange, bulbColor);
+						TrumpModel::drawModel(colors::yellow, bulbColor);
+					}
+				
+			}
+
 		}
+
+
+
+		
+
 	//Sun sphere
 	Sphere::updateSphere(lightPos, lightRadius);
 	Sphere::drawSphere();
@@ -655,6 +737,12 @@ void GLrender(double currentTime) {
 	Sphere::updateSphere(inCabinlightPos, inCabinlightRadius);
 	Sphere::drawSphere();
 	
+
+
+
+
+
+
 
 	ImGui::Render();
 }
@@ -1000,6 +1088,7 @@ namespace CabinModel {
 			glUniform3f(glGetUniformLocation(modelProgram, "inColor"), inColor.r, inColor.g, inColor.b);
 			glUniform3f(glGetUniformLocation(modelProgram, "ambientLight"), ambientLight.r, ambientLight.g, ambientLight.b);
 			glUniform1i(glGetUniformLocation(modelProgram, "toon"), toon);
+			glUniform1i(glGetUniformLocation(modelProgram, "flatColor"), contour);
 
 			glDrawArrays(GL_TRIANGLES, 0, 100000);
 
@@ -1085,6 +1174,7 @@ namespace NoriaBodyModel {
 			glUniform3f(glGetUniformLocation(modelProgram, "inColor"), inColor.r, inColor.g, inColor.b);
 			glUniform3f(glGetUniformLocation(modelProgram, "ambientLight"), ambientLight.r, ambientLight.g, ambientLight.b);
 			glUniform1i(glGetUniformLocation(modelProgram, "toon"), toon);
+			glUniform1i(glGetUniformLocation(modelProgram, "flatColor"), contour);
 
 			glDrawArrays(GL_TRIANGLES, 0, 10000000);
 
@@ -1171,7 +1261,7 @@ namespace NoriaLegsModel {
 		glUniform3f(glGetUniformLocation(modelProgram, "inColor"), inColor.r, inColor.g, inColor.b);
 		glUniform3f(glGetUniformLocation(modelProgram, "ambientLight"), ambientLight.r, ambientLight.g, ambientLight.b);
 		glUniform1i(glGetUniformLocation(modelProgram, "toon"), toon);
-
+		glUniform1i(glGetUniformLocation(modelProgram, "flatColor"), contour);
 		glDrawArrays(GL_TRIANGLES, 0, 100000);
 
 
@@ -1262,6 +1352,7 @@ namespace PolloModel {
 		glUniform3f(glGetUniformLocation(modelProgram, "inColor"), inColor.r, inColor.g, inColor.b);
 		glUniform3f(glGetUniformLocation(modelProgram, "ambientLight"), ambientLight.r, ambientLight.g, ambientLight.b);
 		glUniform1i(glGetUniformLocation(modelProgram, "toon"), toon);
+		glUniform1i(glGetUniformLocation(modelProgram, "flatColor"), contour);
 
 		glDrawArrays(GL_TRIANGLES, 0, 100000);
 
@@ -1350,6 +1441,7 @@ namespace TrumpModel {
 			glUniform3f(glGetUniformLocation(modelProgram, "ambientLight"), ambientLight.r, ambientLight.g, ambientLight.b);
 
 			glUniform1i(glGetUniformLocation(modelProgram, "toon"), toon);
+			glUniform1i(glGetUniformLocation(modelProgram, "flatColor"), contour);
 
 
 			glDrawArrays(GL_TRIANGLES, 0, 100000);
