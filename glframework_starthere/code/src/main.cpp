@@ -18,8 +18,10 @@ extern void GLinit(int width, int height);
 extern void GLcleanup();
 extern void GLrender(double currentTime);
 
-extern int currentCameraShot;
+
 int currentDayNight;
+extern int currentExcercice;
+extern int currentCameraShot;
 extern bool light_moves_M;
 extern bool sunActive_M;
 extern bool moonActive_M;
@@ -27,6 +29,7 @@ extern bool bulbActive_M;
 extern bool secondWheel_M;
 extern bool toon_M;
 extern bool modelTranition_M;
+extern bool contourOn_M;
 
 
 extern void myRenderCode(double currentTime);
@@ -108,16 +111,17 @@ int main(int argc, char** argv) {
 	// Setup ImGui binding
 	ImGui_ImplSdlGL3_Init(mainwindow);
 
-
+	currentExcercice = 0;
 	currentCameraShot = 0; 
 	currentDayNight = 0; 
-	light_moves_M = true;
-	sunActive_M = true;
-	moonActive_M = true;
-	bulbActive_M = true;
+	light_moves_M = false;
+	sunActive_M = false;
+	moonActive_M = false;
+	bulbActive_M = false;
 	secondWheel_M = false;
 	toon_M = false;
 	modelTranition_M = true;
+	contourOn_M = false;
 
 	bool quit_app = false;
 	while (!quit_app) {
@@ -137,10 +141,10 @@ int main(int argc, char** argv) {
 				switch (eve.key.keysym.sym)
 				{
 				case SDLK_a: //Following exercise
-
+					currentExcercice++;
 					break;
 				case SDLK_z: //Previous exercise
-
+					currentExcercice--;
 					break;
 				case SDLK_d: //Trigger Day-Night transition
 					if(currentDayNight == 0)
@@ -167,10 +171,79 @@ int main(int argc, char** argv) {
 					break;
 				case SDLK_s: //Ever-falling wheel
 					secondWheel_M = !secondWheel_M;
+					contourOn_M = !contourOn_M;
 					break;
 				default:
 					break;
 				}
+				break;
+			}
+
+			//Excercice control
+			if (currentExcercice == 12) currentExcercice = 0;
+			if (currentExcercice < 0) currentExcercice = 0;
+			switch (currentExcercice)
+			{
+			case 0:
+				break;
+			case 1:
+				currentCameraShot = 0;
+				modelTranition_M = true;
+				break;
+			case 2:
+				currentCameraShot = 0;
+				modelTranition_M = false;
+				break;
+			case 3:
+				currentCameraShot = 1;
+				break;
+			case 4:
+				currentCameraShot = 3; 
+				break;
+			case 5:
+				currentCameraShot = 0;
+				light_moves_M = true;
+				sunActive_M = true;
+				moonActive_M = true;
+				break;
+			case 6:
+				currentCameraShot = 0;
+				light_moves_M = true;
+				sunActive_M = false;
+				moonActive_M = true;
+				bulbActive_M = true;
+				break;
+			case 7:
+				currentCameraShot = 1;
+				light_moves_M = false;
+				sunActive_M = false;
+				moonActive_M = false;
+				bulbActive_M = true;
+			case 8:
+				secondWheel_M = true;
+				break;
+			case 9:
+				currentCameraShot = 1;
+				toon_M = true;
+				light_moves_M = true;
+				sunActive_M = true;
+				moonActive_M = false;
+				secondWheel_M = false;
+			case 10:
+				toon_M = true;
+				light_moves_M = true;
+				sunActive_M = true;
+				moonActive_M = true;
+				secondWheel_M = false;
+				break;
+			case 11:
+				toon_M = true;
+				light_moves_M = false;
+				sunActive_M = false;
+				moonActive_M = true;
+				secondWheel_M = false;
+				break;
+			default:
 				break;
 			}
 		}

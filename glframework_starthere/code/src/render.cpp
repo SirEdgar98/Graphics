@@ -8,6 +8,7 @@
 #include "GL_framework.h"
 #include <vector>
 #include <iostream>
+#include <string>
 
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_sdl_gl3.h>
@@ -162,6 +163,7 @@ const char* model_fragShader =
 
 
 //Key variables 
+int currentExcercice;
 int currentCameraShot;
 bool light_moves_M;
 bool sunActive_M;
@@ -170,8 +172,9 @@ bool bulbActive_M;
 bool secondWheel_M;
 bool toon_M;
 bool modelTranition_M;
+bool contourOn_M;
 
-
+int excercice;
 bool light_moves = true;
 bool sunActive = true;
 bool moonActive = true;
@@ -179,7 +182,7 @@ bool bulbActive = true;
 bool secondWheel = false;
 bool toon = false;
 bool modelTranition = true; 
-bool cotourOn = true;
+bool contourOn = false;
 glm::mat4 polloMat;
 glm::mat4 trumpMat;
 
@@ -193,6 +196,19 @@ void GUI() {
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
 
+		ImGui::TextColored(ImVec4(0.5, 0.5, 0.5, 1.0), ("Current Excercice ->"));
+		ImGui::SameLine();
+		if (excercice == 0)
+			ImGui::Text("FREE MODE");
+		if (excercice != 0) {
+			std::string num = std::to_string(excercice);
+			const char* numEx = num.c_str();
+			ImGui::Text(numEx);
+		}
+
+		ImGui::Text("A): Next excercice");
+		ImGui::Text("Z): Previous excercice");
+		ImGui::TextColored(ImVec4(1.0, 0.3, 0.0, 1.0), ("////////////////// FREE MODE ACTIVE KEYS//////////////////"));
 		ImGui::TextColored(ImVec4(1.0, 0.3, 0.0, 1.0), ("D): Day-Night Transitions ->"));
 		ImGui::SameLine();
 		if (!light_moves)
@@ -207,8 +223,6 @@ void GUI() {
 			ImGui::Text("Sun ON");
 		if (moonActive)
 			ImGui::Text("Moon ON");
-		if (cotourOn)
-			ImGui::Text("Contour ON");
 		
 		ImGui::TextColored(ImVec4(0.0, 1.0, 0.0, 1.0), ("C): Current Camara ->"));
 		ImGui::SameLine();
@@ -248,6 +262,13 @@ void GUI() {
 			ImGui::Text("Using Wheel");
 		if (modelTranition)
 			ImGui::Text("Using Cubes");
+
+		ImGui::TextColored(ImVec4(0.5, 0.5, 1.0, 1.0), ("Countur->"));
+		ImGui::SameLine();
+		if (!contourOn)
+			ImGui::Text("Disable");
+		if (contourOn)
+			ImGui::Text("Active");
 	}
 	ImGui::End();
 }
@@ -424,6 +445,9 @@ void GLrender(double currentTime) {
 	case 3: currentCamera = cameraPlane::GODS_EYE_SHOT; break;
 	}
 
+
+	excercice = currentExcercice;
+
 	light_moves = light_moves_M;
 	sunActive = sunActive_M;
 	moonActive = moonActive_M;
@@ -431,6 +455,7 @@ void GLrender(double currentTime) {
 	secondWheel = secondWheel_M;
 	toon = toon_M;
 	modelTranition = modelTranition_M;
+	contourOn = contourOn_M;
 
 
 
@@ -637,7 +662,7 @@ void GLrender(double currentTime) {
 			legsMat = glm::rotate(legsMat, 3.14f, glm::vec3(0.0, 1.0, 0.0));
 			NoriaLegsModel::updateModel(legsMat);
 
-			if (cotourOn) {
+			if (contourOn) {
 				glEnable(GL_STENCIL_TEST);
 				glEnable(GL_DEPTH_TEST);
 				glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -682,10 +707,9 @@ void GLrender(double currentTime) {
 			if (!modelTranition) {
 				glm::vec3 bulbColor;
 
-
 				if (bulbActive) bulbColor = colors::white;else bulbColor = colors::black;
 
-					if (cotourOn) {
+					if (contourOn) {
 						glEnable(GL_STENCIL_TEST);
 						glEnable(GL_DEPTH_TEST);
 						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -737,12 +761,6 @@ void GLrender(double currentTime) {
 	Sphere::updateSphere(inCabinlightPos, inCabinlightRadius);
 	Sphere::drawSphere();
 	
-
-
-
-
-
-
 
 	ImGui::Render();
 }
