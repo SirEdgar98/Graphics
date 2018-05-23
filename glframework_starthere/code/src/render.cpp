@@ -163,22 +163,26 @@ const char* model_fragShader =
 
 
 //Key variables 
+int currentBulb;
 int currentExcercice;
 int currentCameraShot;
 bool light_moves_M;
 bool sunActive_M;
 bool moonActive_M;
 bool bulbActive_M;
+bool bulbMove_M;
 bool secondWheel_M;
 bool toon_M;
 bool modelTranition_M;
 bool contourOn_M;
 
 int excercice;
+int bulb;
 bool light_moves = true;
 bool sunActive = true;
 bool moonActive = true;
-bool bulbActive = true;
+bool bulbActive = false;
+bool bulbMove = false;
 bool secondWheel = false;
 bool toon = false;
 bool modelTranition = true; 
@@ -237,9 +241,11 @@ void GUI() {
 
 		ImGui::TextColored(ImVec4(1.0, 1.0, 0.0, 1.0), ("B): Bulb Light ->"));
 		ImGui::SameLine();
-		if(!bulbActive)
-			ImGui::Text("Disabled");
-		if (bulbActive)
+		if(bulb == 0)
+			ImGui::Text("Active & Moving");
+		if (bulb == 1)
+			ImGui::Text("Disable");
+		if(bulb == 2)
 			ImGui::Text("Active");
 
 		ImGui::TextColored(ImVec4(0.0, 1.0, 1.0, 1.0), ("T): Toon Shading ->"));
@@ -256,6 +262,13 @@ void GUI() {
 		if (secondWheel)
 			ImGui::Text("You will fall forever!!");
 
+		ImGui::TextColored(ImVec4(0.5, 0.5, 1.0, 1.0), ("Countur->"));
+		ImGui::SameLine();
+		if (!contourOn)
+			ImGui::Text("Disable");
+		if (contourOn)
+			ImGui::Text("Active");
+
 		ImGui::TextColored(ImVec4(0.8, 0.5, 0.7, 1.0), ("M): Model Transition ->"));
 		ImGui::SameLine();
 		if (!modelTranition)
@@ -263,12 +276,7 @@ void GUI() {
 		if (modelTranition)
 			ImGui::Text("Using Cubes");
 
-		ImGui::TextColored(ImVec4(0.5, 0.5, 1.0, 1.0), ("Countur->"));
-		ImGui::SameLine();
-		if (!contourOn)
-			ImGui::Text("Disable");
-		if (contourOn)
-			ImGui::Text("Active");
+		
 	}
 	ImGui::End();
 }
@@ -447,11 +455,12 @@ void GLrender(double currentTime) {
 
 
 	excercice = currentExcercice;
-
+	bulb = currentBulb;
 	light_moves = light_moves_M;
 	sunActive = sunActive_M;
 	moonActive = moonActive_M;
 	bulbActive = bulbActive_M;
+	bulbMove = bulbMove_M;
 	secondWheel = secondWheel_M;
 	toon = toon_M;
 	modelTranition = modelTranition_M;
@@ -548,8 +557,10 @@ void GLrender(double currentTime) {
 
 				}
 			}
-
-			inCabinlightPos = glm::vec3(auxMat[3][0], auxMat[3][1] - 4 * glm::abs(cos(currentTime)) - 4, auxMat[3][2] + 8 * sin(currentTime));
+			if(bulbMove)
+				inCabinlightPos = glm::vec3(auxMat[3][0], auxMat[3][1] - 4 * glm::abs(cos(currentTime)) - 4, auxMat[3][2] + 8 * sin(currentTime));
+			else
+				inCabinlightPos = glm::vec3(auxMat[3][0], auxMat[3][1], auxMat[3][2]);
 
 			//Set Trump and Pollo in cabin position
 			

@@ -20,12 +20,14 @@ extern void GLrender(double currentTime);
 
 
 int currentDayNight;
+extern int currentBulb;
 extern int currentExcercice;
 extern int currentCameraShot;
 extern bool light_moves_M;
 extern bool sunActive_M;
 extern bool moonActive_M;
 extern bool bulbActive_M;
+extern bool bulbMove_M;
 extern bool secondWheel_M;
 extern bool toon_M;
 extern bool modelTranition_M;
@@ -114,10 +116,12 @@ int main(int argc, char** argv) {
 	currentExcercice = 0;
 	currentCameraShot = 0; 
 	currentDayNight = 0; 
+	currentBulb = 0;
 	light_moves_M = false;
 	sunActive_M = false;
 	moonActive_M = false;
 	bulbActive_M = false;
+	bulbMove_M = false; 
 	secondWheel_M = false;
 	toon_M = false;
 	modelTranition_M = true;
@@ -157,7 +161,22 @@ int main(int argc, char** argv) {
 					currentDayNight %= 3;
 					break;
 				case SDLK_b: //Trigger Bulb Light variants
-					bulbActive_M = !bulbActive_M; 
+					currentBulb++;
+					currentBulb %= 3;
+					if (currentBulb == 0) {
+						bulbActive_M = false;
+						bulbMove_M = false;
+					}
+					if (currentBulb == 1) {
+						bulbActive_M = true;
+						bulbMove_M = false;
+					}
+					if (currentBulb == 2) {
+						bulbActive_M = true;
+						bulbMove_M = true;
+					}
+					currentBulb++;
+					currentBulb %= 3;
 					break;
 				case SDLK_t: //Trigger Toon Shading variants
 					toon_M = !toon_M;
@@ -180,7 +199,7 @@ int main(int argc, char** argv) {
 			}
 
 			//Excercice control
-			if (currentExcercice == 12) currentExcercice = 0;
+			if (currentExcercice == 13) currentExcercice = 0;
 			if (currentExcercice < 0) currentExcercice = 0;
 			switch (currentExcercice)
 			{
@@ -189,6 +208,7 @@ int main(int argc, char** argv) {
 			case 1:
 				currentCameraShot = 0;
 				modelTranition_M = true;
+				contourOn_M = false;
 				break;
 			case 2:
 				currentCameraShot = 0;
@@ -242,6 +262,12 @@ int main(int argc, char** argv) {
 				sunActive_M = false;
 				moonActive_M = true;
 				secondWheel_M = false;
+				contourOn_M = false;
+				break;
+			case 12:
+				secondWheel_M = true;
+				contourOn_M = true;
+
 				break;
 			default:
 				break;
