@@ -32,6 +32,9 @@ extern bool secondWheel_M;
 extern bool toon_M;
 extern bool modelTranition_M;
 extern bool contourOn_M;
+extern bool contourTrump_M;
+extern bool contourPollo_M;
+
 
 
 extern void myRenderCode(double currentTime);
@@ -126,6 +129,7 @@ int main(int argc, char** argv) {
 	toon_M = false;
 	modelTranition_M = true;
 	contourOn_M = false;
+	contourPollo_M = false;
 
 	bool quit_app = false;
 	while (!quit_app) {
@@ -180,6 +184,7 @@ int main(int argc, char** argv) {
 					break;
 				case SDLK_t: //Trigger Toon Shading variants
 					toon_M = !toon_M;
+					contourPollo_M = !contourPollo_M;
 					break;
 				case SDLK_c: // Trigger Camara position variants
 					currentCameraShot++;
@@ -191,6 +196,7 @@ int main(int argc, char** argv) {
 				case SDLK_s: //Ever-falling wheel
 					secondWheel_M = !secondWheel_M;
 					contourOn_M = !contourOn_M;
+					contourPollo_M = !contourPollo_M;
 					break;
 				default:
 					break;

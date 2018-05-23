@@ -175,6 +175,7 @@ bool secondWheel_M;
 bool toon_M;
 bool modelTranition_M;
 bool contourOn_M;
+bool contourPollo_M;
 
 int excercice;
 int bulb;
@@ -187,6 +188,7 @@ bool secondWheel = false;
 bool toon = false;
 bool modelTranition = true; 
 bool contourOn = false;
+bool contourPollo = false;
 glm::mat4 polloMat;
 glm::mat4 trumpMat;
 
@@ -465,7 +467,7 @@ void GLrender(double currentTime) {
 	toon = toon_M;
 	modelTranition = modelTranition_M;
 	contourOn = contourOn_M;
-
+	contourPollo = contourPollo_M;
 
 
 
@@ -753,7 +755,7 @@ void GLrender(double currentTime) {
 
 				if (bulbActive) bulbColor = colors::white; else bulbColor = colors::black;
 
-					if (contourOn) {
+					if (contourPollo) {
 						glEnable(GL_STENCIL_TEST);
 						glEnable(GL_DEPTH_TEST);
 						glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
