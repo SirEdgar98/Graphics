@@ -17,17 +17,16 @@ namespace Sphere {
 }
 
 
-//namespace MyLoadedModel {
-//	extern void setupModel();
-//	extern void cleanupModel();
-//	extern void updateModel(const glm::mat4& transform);
-//	extern void drawModel();
-//}
+namespace MyLoadedModel {
+	extern void setupModel();
+	extern void cleanupModel();
+	extern void updateModel(const glm::mat4& transform);
+	extern void drawModel();
+}
 
 void setupPrims() {
 	Sphere::setupSphere();
-	
-	//MyLoadedModel::setupModel();
+	MyLoadedModel::setupModel();
 }
 void cleanupPrims() {
 	Sphere::cleanupSphere();
