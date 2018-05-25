@@ -12,12 +12,16 @@
 //variables to load an object:
 
 //Dragon
-std::vector< glm::vec3 > DragonVertices;
-std::vector< glm::vec2 > DragonUvs;
-std::vector< glm::vec3 > DragonNormals;
+std::vector< glm::vec3 > dragonVertices;
+std::vector< glm::vec2 > dragonUvs;
+std::vector< glm::vec3 > dragonNormals;
+//Pollo
+std::vector< glm::vec3 > PolloVertices;
+std::vector< glm::vec2 > PolloUvs;
+std::vector< glm::vec3 > PolloNormals;
 
 
-glm::vec3 lightPos = glm::vec3(0.0, 0.0, 20);
+glm::vec3 lightPos = glm::vec3(0.0, 50, 50);
 
 
 extern bool loadOBJ(const char * path,
@@ -30,8 +34,12 @@ extern bool loadOBJ(const char * path,
 
 bool show_test_window = false;
 
+//Seleect Draw Mode
+bool loop; 
+bool instancing;
+bool multydraw;
 
-bool light_moves = true;
+
 void GUI() {
 	bool show = true;
 	ImGui::Begin("Simulation Parameters", &show, 0);
@@ -39,7 +47,7 @@ void GUI() {
 	// Do your GUI code here....
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
-
+		//ImGui::Button("Loop", &loop);
 	}
 	// .........................
 
@@ -63,7 +71,14 @@ namespace Axis {
 	void drawAxis();
 }
 
-namespace MyLoadedModel {
+namespace Pollo {
+	void setupModel();
+	void cleanupModel();
+	void updateModel(const glm::mat4& transform);
+	void drawModel();
+}
+
+namespace Model {
 	void setupModel();
 	void cleanupModel();
 	void updateModel(const glm::mat4& transform);
@@ -84,7 +99,7 @@ namespace Sphere {
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
 	const float zNear = 1.f;
-	const float zFar = 500.f;
+	const float zFar = 5000.f;
 
 	glm::mat4 _projection;
 	glm::mat4 _modelView;
@@ -150,9 +165,11 @@ void GLinit(int width, int height) {
 	/*Box::setupCube();
 	Axis::setupAxis();*/
 
-	bool res = loadOBJ("Pollo.obj", DragonVertices, DragonUvs, DragonNormals);
+	bool res = loadOBJ("pollo.obj", PolloVertices, PolloUvs, PolloNormals);
+	res = loadOBJ("dragon.obj", dragonVertices, dragonUvs, dragonNormals);
 
-	MyLoadedModel::setupModel();
+	Pollo::setupModel();
+	Model::setupModel();
 	Sphere::setupSphere(lightPos,1.0);
 
 }
@@ -160,7 +177,8 @@ void GLinit(int width, int height) {
 void GLcleanup() {
 	/*Box::cleanupCube();
 	Axis::cleanupAxis();*/
-	MyLoadedModel::cleanupModel();
+	Pollo::cleanupModel();
+	Model::cleanupModel();
 	Sphere::cleanupSphere();
 
 }
@@ -175,18 +193,33 @@ void GLrender(double currentTime) {
 
 	RV::_MVP = RV::_projection * RV::_modelView;
 
+	float offset = 80.0;
 	// render code
 	/*Box::drawCube();
 	Axis::drawAxis();*/
 
-	//DragonDraw
-	glm::mat4 DragonMat = glm::mat4(1.0f);
+	
 
-	MyLoadedModel::updateModel(DragonMat);
-	MyLoadedModel::drawModel();
+	for (int i = -50; i < 50; i++) {
+		for (int j = -50; j < 50; j++) {
+			glm::mat4 PolloMat = glm::mat4(1.0f);
+			PolloMat = glm::translate(PolloMat, glm::vec3(offset * i, offset * j, 0.0));
+			if ((i + j) % 2) {
+				Model::updateModel(glm::scale(PolloMat, glm::vec3(8.0, 8.0,8.0)));
+				Model::drawModel();
+			}
+			else {
+				Pollo::updateModel(PolloMat);
+				Pollo::drawModel();
+			}
+		}
+	}
 
-	Sphere::updateSphere(lightPos, 1.0);
-	Sphere::drawSphere();
+
+	
+
+	/*Sphere::updateSphere(lightPos, 1.0);
+	Sphere::drawSphere();*/
 
 	ImGui::Render();
 }
@@ -551,7 +584,7 @@ void main() {\n\
 
 
 //////////////////////////////////////////////// MyModel
-namespace MyLoadedModel {
+namespace Pollo {
 	GLuint modelVao;
 	GLuint modelVbo[3];
 	GLuint modelShaders[2];
@@ -601,13 +634,13 @@ namespace MyLoadedModel {
 
 		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[0]);
 
-		glBufferData(GL_ARRAY_BUFFER, DragonVertices.size() * sizeof(glm::vec3), &DragonVertices[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, PolloVertices.size() * sizeof(glm::vec3), &PolloVertices[0], GL_STATIC_DRAW);
 		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[1]);
 
-		glBufferData(GL_ARRAY_BUFFER, DragonNormals.size() * sizeof(glm::vec3), &DragonNormals[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, PolloNormals.size() * sizeof(glm::vec3), &PolloNormals[0], GL_STATIC_DRAW);
 		glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(1);
 
@@ -650,6 +683,120 @@ namespace MyLoadedModel {
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.3f, 0.f, 0.f);
 
 		glDrawArrays(GL_TRIANGLES, 0, 100000);
+
+
+		glUseProgram(0);
+		glBindVertexArray(0);
+
+	}
+
+
+}
+
+namespace Model {
+	GLuint modelVao;
+	GLuint modelVbo[3];
+	GLuint modelShaders[2];
+	GLuint modelProgram;
+	glm::mat4 objMat = glm::mat4(1.f);
+
+
+
+	const char* model_vertShader =
+		"#version 330\n\
+	in vec3 in_Position;\n\
+	in vec3 in_Normal;\n\
+	uniform vec3 lPos;\n\
+	out vec3 lDir;\n\
+	out vec4 vert_Normal;\n\
+	uniform mat4 objMat;\n\
+	uniform mat4 mv_Mat;\n\
+	uniform mat4 mvpMat;\n\
+	void main() {\n\
+		vec4 worldPos =  objMat * vec4(in_Position, 1.0);\n\
+		gl_Position = mvpMat * worldPos;\n\
+		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
+		lDir = normalize(lPos - worldPos.xyz);\n\
+	}";
+
+
+	const char* model_fragShader =
+		"#version 330\n\
+		in vec4 vert_Normal;\n\
+		in vec3 lDir;\n\
+		out vec4 out_Color;\n\
+		uniform mat4 mv_Mat;\n\
+		uniform vec4 color;\n\
+		float kd = 0.5;\n\
+		void main() {\n\
+		float U = dot(vert_Normal, mv_Mat*vec4(lDir.x, lDir.y, lDir.z, 0.0)); \n\
+		if (U < 0.2) U = 0.1;\n\
+		if (U >= 0.3 && U < 0.5) U = 0.4;\n\
+		if (U >= 0.5 && U < 0.7) U = 0.6;\n\
+		if (U >= 0.9) U = 1.0;\n\
+			out_Color = vec4(color.xyz * U, 1.0 );\n\
+}";
+	void setupModel() {
+		glGenVertexArrays(1, &modelVao);
+		glBindVertexArray(modelVao);
+		glGenBuffers(3, modelVbo);
+
+		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[0]);
+
+		glBufferData(GL_ARRAY_BUFFER, dragonVertices.size() * sizeof(glm::vec3), &dragonVertices[0], GL_STATIC_DRAW);
+		glVertexAttribPointer((GLuint)0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, modelVbo[1]);
+
+		glBufferData(GL_ARRAY_BUFFER, dragonNormals.size() * sizeof(glm::vec3), &dragonNormals[0], GL_STATIC_DRAW);
+		glVertexAttribPointer((GLuint)1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(1);
+
+
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		modelShaders[0] = compileShader(model_vertShader, GL_VERTEX_SHADER, "cubeVert");
+		modelShaders[1] = compileShader(model_fragShader, GL_FRAGMENT_SHADER, "cubeFrag");
+
+		modelProgram = glCreateProgram();
+		glAttachShader(modelProgram, modelShaders[0]);
+		glAttachShader(modelProgram, modelShaders[1]);
+		glBindAttribLocation(modelProgram, 0, "in_Position");
+		glBindAttribLocation(modelProgram, 1, "in_Normal");
+		linkProgram(modelProgram);
+	}
+	void cleanupModel() {
+
+		glDeleteBuffers(2, modelVbo);
+		glDeleteVertexArrays(1, &modelVao);
+
+		glDeleteProgram(modelProgram);
+		glDeleteShader(modelShaders[0]);
+		glDeleteShader(modelShaders[1]);
+	}
+	void updateModel(const glm::mat4& transform) {
+		objMat = transform;
+	}
+	void drawModel() {
+
+		glBindVertexArray(modelVao);
+		glUseProgram(modelProgram);
+		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
+		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
+		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
+		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
+		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.0f, 0.0f, 0.f);
+
+		if(loop)
+			glDrawArrays(GL_TRIANGLES, 0, 100000);
+		if (instancing)
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 10000, 5000);
+			//glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, 10000, 5000, 0);
+
 
 
 		glUseProgram(0);

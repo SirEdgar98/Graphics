@@ -17,7 +17,14 @@ namespace Sphere {
 }
 
 
-namespace MyLoadedModel {
+namespace Pollo {
+	extern void setupModel();
+	extern void cleanupModel();
+	extern void updateModel(const glm::mat4& transform);
+	extern void drawModel();
+}
+
+namespace Model {
 	extern void setupModel();
 	extern void cleanupModel();
 	extern void updateModel(const glm::mat4& transform);
@@ -26,7 +33,8 @@ namespace MyLoadedModel {
 
 void setupPrims() {
 	Sphere::setupSphere();
-	MyLoadedModel::setupModel();
+	Pollo::setupModel();
+	Model::setupModel();
 }
 void cleanupPrims() {
 	Sphere::cleanupSphere();
