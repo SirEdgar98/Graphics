@@ -571,9 +571,10 @@ namespace MyLoadedModel {
 	uniform mat4 mv_Mat;\n\
 	uniform mat4 mvpMat;\n\
 	void main() {\n\
-		gl_Position = mvpMat * objMat * vec4(in_Position, 1.0);\n\
+		vec4 worldPos =  objMat * vec4(in_Position, 1.0);\n\
+		gl_Position = mvpMat * worldPos;\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
-		lDir = normalize(lPos - gl_Position.xyz );\n\
+		lDir = normalize(lPos - worldPos.xyz);\n\
 	}";
 
 
