@@ -17,7 +17,7 @@ std::vector< glm::vec2 > DragonUvs;
 std::vector< glm::vec3 > DragonNormals;
 
 
-glm::vec3 lightPos;
+glm::vec3 lightPos = glm::vec3(0.0, 0.0, 20);
 
 
 extern bool loadOBJ(const char * path,
@@ -150,19 +150,18 @@ void GLinit(int width, int height) {
 	/*Box::setupCube();
 	Axis::setupAxis();*/
 
-	bool res = loadOBJ("Dragon.obj", DragonVertices, DragonUvs, DragonNormals);
+	bool res = loadOBJ("Pollo.obj", DragonVertices, DragonUvs, DragonNormals);
 
 	MyLoadedModel::setupModel();
-
+	Sphere::setupSphere(lightPos,1.0);
 
 }
 
 void GLcleanup() {
 	/*Box::cleanupCube();
 	Axis::cleanupAxis();*/
-	Sphere::cleanupSphere();
 	MyLoadedModel::cleanupModel();
-
+	Sphere::cleanupSphere();
 
 }
 
@@ -186,10 +185,7 @@ void GLrender(double currentTime) {
 	MyLoadedModel::updateModel(DragonMat);
 	MyLoadedModel::drawModel();
 
-	if (light_moves)
-		lightPos = glm::vec3(40 * cos((float)currentTime), 30, 0);
-
-	Sphere::updateSphere(lightPos, 1.0f);
+	Sphere::updateSphere(lightPos, 1.0);
 	Sphere::drawSphere();
 
 	ImGui::Render();
@@ -652,7 +648,7 @@ namespace MyLoadedModel {
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.3f, 0.f, 0.f);
 
-		glDrawArrays(GL_TRIANGLES, 0, 10000);
+		glDrawArrays(GL_TRIANGLES, 0, 100000);
 
 
 		glUseProgram(0);
