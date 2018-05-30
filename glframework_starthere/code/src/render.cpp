@@ -38,7 +38,11 @@ bool show_test_window = false;
 bool loop; 
 bool instancing;
 bool multydraw;
+//Instance number
 
+float offset = 80.0;
+glm::vec4 pos[10000];
+int instanceCount = 10000;
 
 void GUI() {
 	bool show = true;
@@ -47,7 +51,10 @@ void GUI() {
 	// Do your GUI code here....
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
-		//ImGui::Button("Loop", &loop);
+		//ImGui::Button("Loop",);
+		ImGui::Checkbox("Loop", &loop);;
+		ImGui::Checkbox("Instancing", &instancing);;
+		ImGui::Checkbox("Multy Draw", &multydraw);;
 	}
 	// .........................
 
@@ -172,6 +179,16 @@ void GLinit(int width, int height) {
 	Model::setupModel();
 	Sphere::setupSphere(lightPos,1.0);
 
+	//Loop for set meshes positions
+	int count = 0; 
+	for (int i = -50; i < 50; i++) {
+		for (int j = -50; j < 50; j++) {
+			pos[count] = glm::vec4(i*offset, j*offset, 0.0, 1.0);
+			count++;
+		}
+	}
+
+	int test = 0;
 }
 
 void GLcleanup() {
@@ -193,29 +210,46 @@ void GLrender(double currentTime) {
 
 	RV::_MVP = RV::_projection * RV::_modelView;
 
-	float offset = 80.0;
+	
 	// render code
 	/*Box::drawCube();
 	Axis::drawAxis();*/
 
 	
-
-	for (int i = -50; i < 50; i++) {
-		for (int j = -50; j < 50; j++) {
-			glm::mat4 PolloMat = glm::mat4(1.0f);
-			PolloMat = glm::translate(PolloMat, glm::vec3(offset * i, offset * j, 0.0));
-			if ((i + j) % 2) {
-				Model::updateModel(glm::scale(PolloMat, glm::vec3(8.0, 8.0,8.0)));
-				Model::drawModel();
-			}
-			else {
-				Pollo::updateModel(PolloMat);
-				Pollo::drawModel();
+	if (loop == true) {
+		for (int i = -50; i < 50; i++) {
+			for (int j = -50; j < 50; j++) {
+				glm::mat4 PolloMat = glm::mat4(1.0f);
+				PolloMat = glm::translate(PolloMat, glm::vec3(offset * i, offset * j, 0.0));
+				if ((i + j) % 2) {
+					Model::updateModel(glm::scale(PolloMat, glm::vec3(8.0, 8.0, 8.0)));
+					Model::drawModel();
+				}
+				else {
+					Pollo::updateModel(PolloMat);
+					Pollo::drawModel();
+				}
 			}
 		}
+		instancing = false;
+		multydraw = false;
 	}
+	
 
+	if (instancing == true) {
 
+		glm::mat4 PolloMat = glm::mat4(1.0f);
+		
+		Pollo::updateModel(glm::scale(PolloMat, glm::vec3(8.0, 8.0, 8.0)));
+		Pollo::drawModel();
+
+		loop = false;
+		multydraw = false;
+	}
+	if (multydraw == true) {
+		loop == false;
+		instancing = false;
+	}
 	
 
 	/*Sphere::updateSphere(lightPos, 1.0);
@@ -598,12 +632,14 @@ namespace Pollo {
 	in vec3 in_Position;\n\
 	in vec3 in_Normal;\n\
 	uniform vec3 lPos;\n\
+	//uniform vec4 pos[10000];\n\
 	out vec3 lDir;\n\
 	out vec4 vert_Normal;\n\
 	uniform mat4 objMat;\n\
 	uniform mat4 mv_Mat;\n\
 	uniform mat4 mvpMat;\n\
 	void main() {\n\
+		//vec4 offset = pos[gl_InstanceID];\n\
 		vec4 worldPos =  objMat * vec4(in_Position, 1.0);\n\
 		gl_Position = mvpMat * worldPos;\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
@@ -681,8 +717,14 @@ namespace Pollo {
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.3f, 0.f, 0.f);
+		//glUniform4fv(glGetUniformLocation(modelProgram, "pos"), 10000, glm::value_ptr(pos[0]));
 
-		glDrawArrays(GL_TRIANGLES, 0, 100000);
+
+		if (loop == true)
+			glDrawArrays(GL_TRIANGLES, 0, 100000);
+
+		if (instancing == true)
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 10000, instanceCount);
 
 
 		glUseProgram(0);
@@ -791,11 +833,10 @@ namespace Model {
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.0f, 0.0f, 0.f);
 
-		if(loop)
+		if(loop == true)
 			glDrawArrays(GL_TRIANGLES, 0, 100000);
-		if (instancing)
-			glDrawArraysInstanced(GL_TRIANGLES, 0, 10000, 5000);
-			//glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, 10000, 5000, 0);
+		if (instancing == true)
+			glDrawArraysInstanced(GL_TRIANGLES, 0, 10000, instanceCount/2);
 
 
 
