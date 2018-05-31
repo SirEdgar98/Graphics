@@ -37,11 +37,10 @@ bool show_test_window = false;
 //Seleect Draw Mode
 bool loop; 
 bool instancing;
-bool multydraw;
+bool multidraw;
 //Instance number
 
 float offset = 80.0;
-glm::vec4 pos[10000];
 int instanceCount = 10000;
 
 void GUI() {
@@ -54,7 +53,7 @@ void GUI() {
 		//ImGui::Button("Loop",);
 		ImGui::Checkbox("Loop", &loop);;
 		ImGui::Checkbox("Instancing", &instancing);;
-		ImGui::Checkbox("Multy Draw", &multydraw);;
+		ImGui::Checkbox("MultiDraw", &multidraw);;
 	}
 	// .........................
 
@@ -181,12 +180,6 @@ void GLinit(int width, int height) {
 
 	//Loop for set meshes positions
 	int count = 0; 
-	for (int i = -50; i < 50; i++) {
-		for (int j = -50; j < 50; j++) {
-			pos[count] = glm::vec4(i*offset, j*offset, 0.0, 1.0);
-			count++;
-		}
-	}
 
 	int test = 0;
 }
@@ -232,7 +225,7 @@ void GLrender(double currentTime) {
 			}
 		}
 		instancing = false;
-		multydraw = false;
+		multidraw = false;
 	}
 	
 
@@ -240,13 +233,13 @@ void GLrender(double currentTime) {
 
 		glm::mat4 PolloMat = glm::mat4(1.0f);
 		
-		Pollo::updateModel(glm::scale(PolloMat, glm::vec3(8.0, 8.0, 8.0)));
+		Pollo::updateModel(PolloMat);
 		Pollo::drawModel();
 
 		loop = false;
-		multydraw = false;
+		multidraw = false;
 	}
-	if (multydraw == true) {
+	if (multidraw == true) {
 		loop == false;
 		instancing = false;
 	}
@@ -632,15 +625,14 @@ namespace Pollo {
 	in vec3 in_Position;\n\
 	in vec3 in_Normal;\n\
 	uniform vec3 lPos;\n\
-	//uniform vec4 pos[10000];\n\
 	out vec3 lDir;\n\
 	out vec4 vert_Normal;\n\
 	uniform mat4 objMat;\n\
 	uniform mat4 mv_Mat;\n\
 	uniform mat4 mvpMat;\n\
 	void main() {\n\
-		//vec4 offset = pos[gl_InstanceID];\n\
-		vec4 worldPos =  objMat * vec4(in_Position, 1.0);\n\
+		vec4 offset = vec4(gl_InstanceID * 10, gl_InstanceID * 10,0.0,0.0);\n\
+		vec4 worldPos =  objMat * (vec4(in_Position, 1.0) + offset);\n\
 		gl_Position = mvpMat * worldPos;\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
 		lDir = normalize(lPos - worldPos.xyz);\n\
@@ -717,14 +709,12 @@ namespace Pollo {
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.3f, 0.f, 0.f);
-		//glUniform4fv(glGetUniformLocation(modelProgram, "pos"), 10000, glm::value_ptr(pos[0]));
+		
 
 
-		if (loop == true)
-			glDrawArrays(GL_TRIANGLES, 0, 100000);
+		if (loop == true) { glDrawArrays(GL_TRIANGLES, 0, 100000); }
 
-		if (instancing == true)
-			glDrawArraysInstanced(GL_TRIANGLES, 0, 10000, instanceCount);
+		if (instancing == true) glDrawArraysInstanced(GL_TRIANGLES, 0, 100000, instanceCount);
 
 
 		glUseProgram(0);
