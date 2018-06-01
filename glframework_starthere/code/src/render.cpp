@@ -35,6 +35,12 @@ extern bool loadOBJ(const char * path,
 bool show_test_window = false;
 
 //Seleect Draw Mode
+enum DrawMode
+{
+	LOOP,INSTANCING,MULTIDRAW
+};
+DrawMode d;
+static int drawMode; // 0 = loop // 1 = Instancing // 2 Multydraw
 bool loop; 
 bool instancing;
 bool multidraw;
@@ -50,10 +56,9 @@ void GUI() {
 	// Do your GUI code here....
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);//FrameRate
-		//ImGui::Button("Loop",);
-		ImGui::Checkbox("Loop", &loop);;
-		ImGui::Checkbox("Instancing", &instancing);;
-		ImGui::Checkbox("MultiDraw", &multidraw);;
+		ImGui::RadioButton("Loop", &drawMode,DrawMode::LOOP);
+		ImGui::RadioButton("Instancing", &drawMode,DrawMode::INSTANCING);
+		ImGui::RadioButton("MultiDraw", &drawMode, DrawMode::MULTIDRAW);
 	}
 	// .........................
 
@@ -209,7 +214,7 @@ void GLrender(double currentTime) {
 	Axis::drawAxis();*/
 
 	
-	if (loop == true) {
+	if () {
 		for (int i = -50; i < 50; i++) {
 			for (int j = -50; j < 50; j++) {
 				glm::mat4 PolloMat = glm::mat4(1.0f);
@@ -224,24 +229,24 @@ void GLrender(double currentTime) {
 				}
 			}
 		}
-		instancing = false;
-		multidraw = false;
+		//instancing = false;
+		//multidraw = false;
 	}
 	
 
-	if (instancing == true) {
+	if (drawMode == 1) {
 
 		glm::mat4 PolloMat = glm::mat4(1.0f);
 		
 		Pollo::updateModel(PolloMat);
 		Pollo::drawModel();
 
-		loop = false;
-		multidraw = false;
+		//loop = false;
+		//multidraw = false;
 	}
-	if (multidraw == true) {
-		loop == false;
-		instancing = false;
+	if (drawMode == 2) {
+		//loop == false;
+		//instancing = false;
 	}
 	
 
