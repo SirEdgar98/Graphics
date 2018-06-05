@@ -9,6 +9,9 @@
 
 #include <imgui\imgui.h>
 #include <imgui\imgui_impl_sdl_gl3.h>
+
+#include <iostream>
+
 //variables to load an object:
 
 //Dragon
@@ -172,10 +175,6 @@ void GLinit(int width, int height) {
 
 	RV::_projection = glm::perspective(RV::FOV, (float)width / (float)height, RV::zNear, RV::zFar);
 
-	// Setup shaders & geometry
-	/*Box::setupCube();
-	Axis::setupAxis();*/
-
 	bool res = loadOBJ("pollo.obj", PolloVertices, PolloUvs, PolloNormals);
 	res = loadOBJ("dragon.obj", dragonVertices, dragonUvs, dragonNormals);
 
@@ -183,15 +182,9 @@ void GLinit(int width, int height) {
 	Model::setupModel();
 	Sphere::setupSphere(lightPos,1.0);
 
-	//Loop for set meshes positions
-	int count = 0; 
-
-	int test = 0;
 }
 
 void GLcleanup() {
-	/*Box::cleanupCube();
-	Axis::cleanupAxis();*/
 	Pollo::cleanupModel();
 	Model::cleanupModel();
 	Sphere::cleanupSphere();
@@ -208,19 +201,14 @@ void GLrender(double currentTime) {
 
 	RV::_MVP = RV::_projection * RV::_modelView;
 
-	
-	// render code
-	/*Box::drawCube();
-	Axis::drawAxis();*/
-
-	
-	if () {
+	if (drawMode == 0) {
+		//std::cout << "Loop" << std::endl; 
 		for (int i = -50; i < 50; i++) {
 			for (int j = -50; j < 50; j++) {
 				glm::mat4 PolloMat = glm::mat4(1.0f);
 				PolloMat = glm::translate(PolloMat, glm::vec3(offset * i, offset * j, 0.0));
 				if ((i + j) % 2) {
-					Model::updateModel(glm::scale(PolloMat, glm::vec3(8.0, 8.0, 8.0)));
+					Model::updateModel(PolloMat);
 					Model::drawModel();
 				}
 				else {
@@ -229,24 +217,28 @@ void GLrender(double currentTime) {
 				}
 			}
 		}
-		//instancing = false;
-		//multidraw = false;
 	}
 	
 
 	if (drawMode == 1) {
+		//std::cout << "Instancing" << std::endl;
 
 		glm::mat4 PolloMat = glm::mat4(1.0f);
 		
 		Pollo::updateModel(PolloMat);
 		Pollo::drawModel();
+		Model::updateModel(PolloMat);
+		Model::drawModel();
 
-		//loop = false;
-		//multidraw = false;
 	}
 	if (drawMode == 2) {
-		//loop == false;
-		//instancing = false;
+		//std::cout << "Multy" << std::endl;
+		glm::mat4 PolloMat = glm::mat4(1.0f);
+
+		Pollo::updateModel(PolloMat);
+		Pollo::drawModel();
+		Model::updateModel(PolloMat);
+		Model::drawModel();
 	}
 	
 
@@ -636,7 +628,9 @@ namespace Pollo {
 	uniform mat4 mv_Mat;\n\
 	uniform mat4 mvpMat;\n\
 	void main() {\n\
-		vec4 offset = vec4(gl_InstanceID * 10, gl_InstanceID * 10,0.0,0.0);\n\
+		int countI = -50;\n\
+		int countJ = -50;\n\
+		vec4 offset = vec4(gl_InstanceID * countI, gl_InstanceID * countJ,0.0,0.0);\n\
 		vec4 worldPos =  objMat * (vec4(in_Position, 1.0) + offset);\n\
 		gl_Position = mvpMat * worldPos;\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
@@ -660,7 +654,22 @@ namespace Pollo {
 		if (U >= 0.9) U = 1.0;\n\
 			out_Color = vec4(color.xyz * U, 1.0 );\n\
 }";
+
+	typedef struct {
+		GLuint count;
+		GLuint primCount;
+		GLuint first;
+		GLuint baseInstance;
+	}MultyDrawComands;
+	MultyDrawComands Mcmd;
+
 	void setupModel() {
+
+		Mcmd.count = PolloVertices.size();
+		Mcmd.primCount = instanceCount/2;
+		Mcmd.first = 0;
+		Mcmd.baseInstance = 0;
+
 		glGenVertexArrays(1, &modelVao);
 		glBindVertexArray(modelVao);
 		glGenBuffers(3, modelVbo);
@@ -692,6 +701,10 @@ namespace Pollo {
 		glBindAttribLocation(modelProgram, 0, "in_Position");
 		glBindAttribLocation(modelProgram, 1, "in_Normal");
 		linkProgram(modelProgram);
+
+		// VBO FOR MULTUY DRAW
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, modelVbo[2]);
+		glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(Mcmd), &Mcmd, GL_STATIC_DRAW);
 	}
 	void cleanupModel() {
 
@@ -708,6 +721,7 @@ namespace Pollo {
 	void drawModel() {
 
 		glBindVertexArray(modelVao);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, modelVbo[2]);
 		glUseProgram(modelProgram);
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
@@ -717,10 +731,11 @@ namespace Pollo {
 		
 
 
-		if (loop == true) { glDrawArrays(GL_TRIANGLES, 0, 100000); }
+		if (drawMode == 0) glDrawArrays(GL_TRIANGLES, 0, 100000); // LOOP MODE
 
-		if (instancing == true) glDrawArraysInstanced(GL_TRIANGLES, 0, 100000, instanceCount);
+		if (drawMode == 1) glDrawArraysInstanced(GL_TRIANGLES, 0, 100000, instanceCount/2); //INSTANCE MODE
 
+		if (drawMode == 2) glMultiDrawArraysIndirect(GL_TRIANGLES, 0, 1, 0);  //MULTIDRAW MODE
 
 		glUseProgram(0);
 		glBindVertexArray(0);
@@ -750,7 +765,10 @@ namespace Model {
 	uniform mat4 mv_Mat;\n\
 	uniform mat4 mvpMat;\n\
 	void main() {\n\
-		vec4 worldPos =  objMat * vec4(in_Position, 1.0);\n\
+		int countI = -50;\n\
+		int countJ = -50;\n\
+		vec4 offset = vec4(gl_InstanceID * countI, gl_InstanceID * countJ,0.0,0.0);\n\
+		vec4 worldPos =  objMat * (vec4(in_Position, 1.0) + offset);\n\
 		gl_Position = mvpMat * worldPos;\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
 		lDir = normalize(lPos - worldPos.xyz);\n\
@@ -773,7 +791,22 @@ namespace Model {
 		if (U >= 0.9) U = 1.0;\n\
 			out_Color = vec4(color.xyz * U, 1.0 );\n\
 }";
+
+	typedef struct {
+		GLuint count;
+		GLuint primCount;
+		GLuint first;
+		GLuint baseInstance;
+	}MultyDrawComands;
+	MultyDrawComands Mcmd;
+
 	void setupModel() {
+
+		Mcmd.count = PolloVertices.size();
+		Mcmd.primCount = instanceCount/2;
+		Mcmd.first = 0;
+		Mcmd.baseInstance = 0;
+
 		glGenVertexArrays(1, &modelVao);
 		glBindVertexArray(modelVao);
 		glGenBuffers(3, modelVbo);
@@ -805,6 +838,11 @@ namespace Model {
 		glBindAttribLocation(modelProgram, 0, "in_Position");
 		glBindAttribLocation(modelProgram, 1, "in_Normal");
 		linkProgram(modelProgram);
+
+		// VBO FOR MULTUY DRAW
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, modelVbo[2]);
+		glBufferData(GL_DRAW_INDIRECT_BUFFER, sizeof(Mcmd), &Mcmd, GL_STATIC_DRAW);
+
 	}
 	void cleanupModel() {
 
@@ -821,6 +859,7 @@ namespace Model {
 	void drawModel() {
 
 		glBindVertexArray(modelVao);
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, modelVbo[2]);
 		glUseProgram(modelProgram);
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "objMat"), 1, GL_FALSE, glm::value_ptr(objMat));
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mv_Mat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_modelView));
@@ -828,11 +867,11 @@ namespace Model {
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.0f, 0.0f, 0.f);
 
-		if(loop == true)
-			glDrawArrays(GL_TRIANGLES, 0, 100000);
-		if (instancing == true)
-			glDrawArraysInstanced(GL_TRIANGLES, 0, 10000, instanceCount/2);
+		if(drawMode == 0) glDrawArrays(GL_TRIANGLES, 0, 100000);// LOOP MODE
 
+		if (drawMode == 1) glDrawArraysInstanced(GL_TRIANGLES, 0, 10000, instanceCount/2);// INSTANCING MODE 
+
+		if (drawMode == 2) glMultiDrawArraysIndirect(GL_TRIANGLES, 0, 1, 0);  //MULTIDRAW MODE
 
 
 		glUseProgram(0);
