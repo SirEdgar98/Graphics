@@ -35,7 +35,7 @@ extern bool loadOBJ(const char * path,
 
 
 
-bool show_test_window = false;
+
 
 //Seleect Draw Mode
 enum DrawMode
@@ -43,14 +43,16 @@ enum DrawMode
 	LOOP,INSTANCING,MULTIDRAW
 };
 DrawMode d;
-static int drawMode; // 0 = loop // 1 = Instancing // 2 Multydraw
+static int drawMode; // 0 = Loop // 1 = Instancing // 2 = Multidraw
 bool loop; 
 bool instancing;
 bool multidraw;
 //Instance number
 
-float offset = 80.0;
+glm::vec3 offset;
 int instanceCount = 10000;
+
+double ct;
 
 void GUI() {
 	bool show = true;
@@ -113,7 +115,7 @@ namespace Sphere {
 namespace RenderVars {
 	const float FOV = glm::radians(65.f);
 	const float zNear = 1.f;
-	const float zFar = 5000.f;
+	const float zFar = 10000.0f;
 
 	glm::mat4 _projection;
 	glm::mat4 _modelView;
@@ -201,21 +203,27 @@ void GLrender(double currentTime) {
 
 	RV::_MVP = RV::_projection * RV::_modelView;
 
+	ct = currentTime;
+
+	// GET READY PARA EL MAREO
+
 	if (drawMode == 0) {
 		//std::cout << "Loop" << std::endl; 
-		for (int i = -50; i < 50; i++) {
-			for (int j = -50; j < 50; j++) {
-				glm::mat4 PolloMat = glm::mat4(1.0f);
-				PolloMat = glm::translate(PolloMat, glm::vec3(offset * i, offset * j, 0.0));
-				if ((i + j) % 2) {
-					Model::updateModel(PolloMat);
-					Model::drawModel();
-				}
-				else {
-					Pollo::updateModel(PolloMat);
-					Pollo::drawModel();
-				}
-			}
+		for (int i = 0; i < instanceCount; i++) {
+			glm::mat4 PolloMat = glm::mat4(1.0f);
+
+			// MAGIA NEGRA APLICADA EN OFFSET
+			offset = glm::vec3(i*sin(currentTime + 6 * i) * 2 * sin(currentTime) + i / 2, i*cos(currentTime + 6 * i) * 2 * sin(currentTime) + i / 2, -1000 - i*cos(currentTime + 6 * i) * 2 * sin(currentTime) + i / 2);
+			PolloMat = glm::translate(PolloMat, offset);
+			Pollo::updateModel(PolloMat);
+			Pollo::drawModel();
+
+			PolloMat = glm::mat4(1.f);
+			offset = glm::vec3(i*cos(currentTime + 6 * i) * 2 * sin(currentTime) + i / 2, i*sin(currentTime + 6 * i) * 2 * sin(currentTime) + i / 2, -1000 - i*cos(currentTime + 6 * i) * 2 * sin(currentTime) + i / 2);
+			PolloMat = glm::translate(PolloMat, offset);
+			Model::updateModel(PolloMat);
+			Model::drawModel();
+
 		}
 	}
 	
@@ -627,10 +635,9 @@ namespace Pollo {
 	uniform mat4 objMat;\n\
 	uniform mat4 mv_Mat;\n\
 	uniform mat4 mvpMat;\n\
+	uniform float currentTime;\n\
 	void main() {\n\
-		int countI = -50;\n\
-		int countJ = -50;\n\
-		vec4 offset = vec4(gl_InstanceID * countI, gl_InstanceID * countJ,0.0,0.0);\n\
+		vec4 offset = vec4(gl_InstanceID*sin(currentTime+6*gl_InstanceID)*2*sin(currentTime)+gl_InstanceID/2,gl_InstanceID*cos(currentTime+6*gl_InstanceID)*2*sin(currentTime)+gl_InstanceID/2,-1000 - gl_InstanceID*cos(currentTime+6*gl_InstanceID)*2*sin(currentTime)+gl_InstanceID/2,0.0);\n\
 		vec4 worldPos =  objMat * (vec4(in_Position, 1.0) + offset);\n\
 		gl_Position = mvpMat * worldPos;\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
@@ -728,6 +735,7 @@ namespace Pollo {
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.3f, 0.f, 0.f);
+		glUniform1f(glGetUniformLocation(modelProgram, "currentTime"), (float)ct);
 		
 
 
@@ -764,10 +772,11 @@ namespace Model {
 	uniform mat4 objMat;\n\
 	uniform mat4 mv_Mat;\n\
 	uniform mat4 mvpMat;\n\
+	uniform float currentTime;\n\
 	void main() {\n\
 		int countI = -50;\n\
 		int countJ = -50;\n\
-		vec4 offset = vec4(gl_InstanceID * countI, gl_InstanceID * countJ,0.0,0.0);\n\
+		vec4 offset = vec4(gl_InstanceID*cos(currentTime+6*gl_InstanceID)*2*sin(currentTime)+gl_InstanceID/2,gl_InstanceID*sin(currentTime+6*gl_InstanceID)*2*sin(currentTime)+gl_InstanceID/2,-1000 - gl_InstanceID*cos(currentTime+6*gl_InstanceID)*2*sin(currentTime)+gl_InstanceID/2,0.0);\n\
 		vec4 worldPos =  objMat * (vec4(in_Position, 1.0) + offset);\n\
 		gl_Position = mvpMat * worldPos;\n\
 		vert_Normal = mv_Mat * objMat * vec4(in_Normal, 0.0);\n\
@@ -866,6 +875,8 @@ namespace Model {
 		glUniformMatrix4fv(glGetUniformLocation(modelProgram, "mvpMat"), 1, GL_FALSE, glm::value_ptr(RenderVars::_MVP));
 		glUniform3f(glGetUniformLocation(modelProgram, "lPos"), lightPos.x, lightPos.y, lightPos.z);
 		glUniform4f(glGetUniformLocation(modelProgram, "color"), 0.7f, 0.0f, 0.0f, 0.f);
+		glUniform1f(glGetUniformLocation(modelProgram, "currentTime"), (float)ct);
+
 
 		if(drawMode == 0) glDrawArrays(GL_TRIANGLES, 0, 100000);// LOOP MODE
 
